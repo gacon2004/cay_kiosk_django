@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 
 
-class AuthConfig(AppConfig):
+class AuthenticationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'auth'
+    name = 'apps.authentication'
+    verbose_name = 'Xác thực & Phân quyền'

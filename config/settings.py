@@ -26,8 +26,7 @@ SECRET_KEY = 'django-insecure-g6n&uq9349isi$lqj0*k0!j%$6@02np!((ablurp6x_%jcg9#g
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 PHONENUMBER_DEFAULT_REGION = 'VN'
 
 
@@ -53,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # THÊM CORS (đặt trước CommonMiddleware)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,7 +79,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'newproject.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
@@ -94,9 +94,9 @@ WSGI_APPLICATION = 'newproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'webbanhang',
+        'NAME': 'kiosk_2',
         'USER': 'root',
-        'PASSWORD': '1234',
+        'PASSWORD': 'hocmysql1234',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
@@ -131,10 +131,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -142,8 +140,188 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # THÊM STATIC_ROOT
+STATICFILES_DIRS = [BASE_DIR / 'static']  # THÊM STATICFILES_DIRS
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# # THÊM MEDIA FILES CONFIGURATION
+# MEDIA_URL = 'media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# # Default primary key field type
+# # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# # Default primary key field type
+# # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# #  THÊM PHẦN NÀY - REST FRAMEWORK CONFIGURATION 
+# REST_FRAMEWORK = {
+#     # Authentication
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#     ],
+    
+#     # Permissions
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.IsAuthenticated',
+#     ],
+    
+#     # Pagination
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 10,
+    
+#     # Filtering
+#     'DEFAULT_FILTER_BACKENDS': [
+#         'django_filters.rest_framework.DjangoFilterBackend',
+#         'rest_framework.filters.SearchFilter',
+#         'rest_framework.filters.OrderingFilter',
+#     ],
+    
+#     # Renderer (format trả về)
+#     'DEFAULT_RENDERER_CLASSES': [
+#         'rest_framework.renderers.JSONRenderer',
+#         'rest_framework.renderers.BrowsableAPIRenderer',  # API browsable UI
+#     ],
+    
+#     # Parser (format nhận vào)
+#     'DEFAULT_PARSER_CLASSES': [
+#         'rest_framework.parsers.JSONParser',
+#         'rest_framework.parsers.FormParser',
+#         'rest_framework.parsers.MultiPartParser',
+#     ],
+    
+#     # Exception handler
+#     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    
+#     # Date format
+#     'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
+#     'DATE_FORMAT': '%d/%m/%Y',
+#     'TIME_FORMAT': '%H:%M:%S',
+# }
+
+# #  JWT SETTINGS 
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Token hết hạn sau 1 giờ
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),   # Refresh token hết hạn sau 7 ngày
+#     'ROTATE_REFRESH_TOKENS': True,                 # Tạo refresh token mới khi refresh
+#     'BLACKLIST_AFTER_ROTATION': True,              # Blacklist token cũ
+#     'UPDATE_LAST_LOGIN': True,                     # Cập nhật last_login
+    
+#     'ALGORITHM': 'HS256',
+#     'SIGNING_KEY': SECRET_KEY,
+#     'VERIFYING_KEY': None,
+#     'AUDIENCE': None,
+#     'ISSUER': None,
+    
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+#     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+#     'USER_ID_FIELD': 'id',
+#     'USER_ID_CLAIM': 'user_id',
+    
+#     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+#     'TOKEN_TYPE_CLAIM': 'token_type',
+    
+#     'JTI_CLAIM': 'jti',
+    
+#     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+#     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+#     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+# }
+
+# #  CORS SETTINGS 
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",      # React Dev Server
+#     "http://127.0.0.1:3000",
+# ]
+
+# CORS_ALLOW_CREDENTIALS = True
+
+# # Hoặc cho phép tất cả (CHỈ DÙNG TRONG DEV)
+# # CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS_ALLOW_METHODS = [
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+# ]
+
+# CORS_ALLOW_HEADERS = [
+#     'accept',
+#     'accept-encoding',
+#     'authorization',
+#     'content-type',
+#     'dnt',
+#     'origin',
+#     'user-agent',
+#     'x-csrftoken',
+#     'x-requested-with',
+# ]
+
+# #  CUSTOM USER MODEL (NẾU DÙNG) 
+# # AUTH_USER_MODEL = 'authentication.CustomUser'  # Bỏ comment nếu dùng CustomUser
+
+# #  EMAIL CONFIGURATION (CHO RESET PASSWORD, VERIFY EMAIL)
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Dev: in ra console
+# # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Production: dùng SMTP
+
+# # SMTP Settings (cho production)
+# # EMAIL_HOST = 'smtp.gmail.com'
+# # EMAIL_PORT = 587
+# # EMAIL_USE_TLS = True
+# # EMAIL_HOST_USER = 'your-email@gmail.com'
+# # EMAIL_HOST_PASSWORD = 'your-app-password'
+# # DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
+
+# # LOGGING CONFIGURATION 
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '{levelname} {asctime} {module} {message}',
+#             'style': '{',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'verbose',
+#         },
+#         'file': {
+#             'class': 'logging.FileHandler',
+#             'filename': BASE_DIR / 'logs' / 'debug.log',
+#             'formatter': 'verbose',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console', 'file'],
+#         'level': 'INFO',
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console', 'file'],
+#             'level': 'INFO',
+#             'propagate': False,
+#         },
+#     },
+# }
+
+# # SECURITY SETTINGS (CHO PRODUCTION)
+# if not DEBUG:
+#     SECURE_SSL_REDIRECT = True
+#     SESSION_COOKIE_SECURE = True
+#     CSRF_COOKIE_SECURE = True
+#     SECURE_BROWSER_XSS_FILTER = True
+#     SECURE_CONTENT_TYPE_NOSNIFF = True
+#     X_FRAME_OPTIONS = 'DENY'
+#     SECURE_HSTS_SECONDS = 31536000
+#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+#     SECURE_HSTS_PRELOAD = True
