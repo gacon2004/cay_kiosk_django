@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     # Your apps - đổi tên cho rõ ràng
     'apps.users',
     'apps.authentication',
-    'apps.api',
+    # 'apps.api',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # THÊM CORS (đặt trước CommonMiddleware)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # TẠM TẮT CSRF để test API
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -158,51 +158,51 @@ STATICFILES_DIRS = [BASE_DIR / 'static']  # THÊM STATICFILES_DIRS
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# #  THÊM PHẦN NÀY - REST FRAMEWORK CONFIGURATION 
-# REST_FRAMEWORK = {
-#     # Authentication
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework_simplejwt.authentication.JWTAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     ],
+# REST FRAMEWORK CONFIGURATION 
+REST_FRAMEWORK = {
+    # Authentication
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+    ],
     
-#     # Permissions
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.IsAuthenticated',
-#     ],
+    # Permissions - CHO PHÉP TẤT CẢ (để test, sau này sửa lại IsAuthenticated)
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Tạm thời cho phép tất cả
+    ],
     
-#     # Pagination
-#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-#     'PAGE_SIZE': 10,
+    # Pagination
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
     
-#     # Filtering
-#     'DEFAULT_FILTER_BACKENDS': [
-#         'django_filters.rest_framework.DjangoFilterBackend',
-#         'rest_framework.filters.SearchFilter',
-#         'rest_framework.filters.OrderingFilter',
-#     ],
+    # Filtering
+    'DEFAULT_FILTER_BACKENDS': [
+        # 'django_filters.rest_framework.DjangoFilterBackend',  # Tắt nếu chưa cài django-filter
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
     
-#     # Renderer (format trả về)
-#     'DEFAULT_RENDERER_CLASSES': [
-#         'rest_framework.renderers.JSONRenderer',
-#         'rest_framework.renderers.BrowsableAPIRenderer',  # API browsable UI
-#     ],
+    # Renderer (format trả về)
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',  # API browsable UI
+    ],
     
-#     # Parser (format nhận vào)
-#     'DEFAULT_PARSER_CLASSES': [
-#         'rest_framework.parsers.JSONParser',
-#         'rest_framework.parsers.FormParser',
-#         'rest_framework.parsers.MultiPartParser',
-#     ],
+    # Parser (format nhận vào)
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
     
-#     # Exception handler
-#     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    # Exception handler
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     
-#     # Date format
-#     'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
-#     'DATE_FORMAT': '%d/%m/%Y',
-#     'TIME_FORMAT': '%H:%M:%S',
-# }
+    # Date format
+    'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
+    'DATE_FORMAT': '%d/%m/%Y',
+    'TIME_FORMAT': '%H:%M:%S',
+}
 
 # #  JWT SETTINGS 
 # SIMPLE_JWT = {
@@ -233,37 +233,47 @@ STATICFILES_DIRS = [BASE_DIR / 'static']  # THÊM STATICFILES_DIRS
 #     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 # }
 
-# #  CORS SETTINGS 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",      # React Dev Server
-#     "http://127.0.0.1:3000",
-# ]
+# CSRF SETTINGS - TẮT CHO API
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
-# CORS_ALLOW_CREDENTIALS = True
+# CORS SETTINGS 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",      # React Dev Server
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",      # Django server
+    "http://127.0.0.1:8000",
+]
 
-# # Hoặc cho phép tất cả (CHỈ DÙNG TRONG DEV)
-# # CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
-# CORS_ALLOW_METHODS = [
-#     'DELETE',
-#     'GET',
-#     'OPTIONS',
-#     'PATCH',
-#     'POST',
-#     'PUT',
-# ]
+# Hoặc cho phép tất cả (CHỈ DÙNG TRONG DEV) - TẠM BẬT ĐỂ TEST
+CORS_ALLOW_ALL_ORIGINS = True  # Cho phép tất cả domain (chỉ dùng trong dev)
 
-# CORS_ALLOW_HEADERS = [
-#     'accept',
-#     'accept-encoding',
-#     'authorization',
-#     'content-type',
-#     'dnt',
-#     'origin',
-#     'user-agent',
-#     'x-csrftoken',
-#     'x-requested-with',
-# ]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # #  CUSTOM USER MODEL (NẾU DÙNG) 
 # # AUTH_USER_MODEL = 'authentication.CustomUser'  # Bỏ comment nếu dùng CustomUser

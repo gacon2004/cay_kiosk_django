@@ -11,23 +11,30 @@ from apps.users.views import (
     PatientViewSet,
     InsuranceViewSet,
     DoctorViewSet,
-    BankInformationViewSet,
+    ClinicViewSet,  # Import ClinicViewSet
 )
+from apps.users.views.test_view import test_api  # Import test view
 
 app_name = 'users'
 
 # Router cho API ViewSet
 # Router tự động tạo URL patterns cho các actions CRUD
 router = DefaultRouter()
+# Nguyên nhân chính: Thứ tự đăng ký router trong urls.py bị sai. 
+# Khi bạn đăng ký UserViewSet với route rỗng (r'') trước các route khác,
+# Django Router sẽ cố gắng match /api/users/clinics/ như một phần của UserViewSet 
+# (có thể là action hoặc object lookup), và UserViewSet có get_permissions() 
+# yêu cầu IsAuthenticated() → gây ra lỗi 403.
 
-# Đăng ký các ViewSets
-router.register(r'', UserViewSet, basename='user')
+# Đăng ký các ViewSets - ĐẶT CÁC ROUTE CỤ THỂ TRƯỚC ROUTE RỖNG!
 router.register(r'patients', PatientViewSet, basename='patient')
 router.register(r'insurance', InsuranceViewSet, basename='insurance')
 router.register(r'doctors', DoctorViewSet, basename='doctor')
-router.register(r'banks', BankInformationViewSet, basename='bank')
+router.register(r'clinics', ClinicViewSet, basename='clinic')  # Đăng ký route cho Clinic
+router.register(r'', UserViewSet, basename='user')  # Route rỗng đặt cuối cùng
 
 urlpatterns = [
+    path('test/', test_api, name='test-api'),  # Test API endpoint
     path('', include(router.urls)),
 ]
 
@@ -83,14 +90,7 @@ Doctors:
 - POST   /api/users/doctors/{id}/activate/      - Activate doctor
 - POST   /api/users/doctors/{id}/deactivate/    - Deactivate doctor
 
-Banks:
-- GET    /api/users/banks/                - List banks
-- POST   /api/users/banks/                - Create bank
-- GET    /api/users/banks/{id}/           - Retrieve bank
-- PUT    /api/users/banks/{id}/           - Update bank
-- PATCH  /api/users/banks/{id}/           - Partial update
-- DELETE /api/users/banks/{id}/           - Delete bank
-- GET    /api/users/banks/active/         - Active banks
-- GET    /api/users/banks/by_bank_name/   - Search by name
-- GET    /api/users/banks/bank_list/      - List bank names
+Clinics:
+- GET    /api/users/clinics/              - List clinics
+
 """

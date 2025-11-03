@@ -38,7 +38,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     
     queryset = User.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]  # Comment để dùng AllowAny từ settings
     
     # Filters, Search, Ordering
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

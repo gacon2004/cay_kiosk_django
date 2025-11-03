@@ -9,16 +9,13 @@ from .models import (
     Patients,
     Insurance,
     Doctors,
-    BankInformation,
+    Clinic
 )
 
-# Alias cho backward compatibility
-bank_infomation = BankInformation
 
 __all__ = [
     'Patients',
     'Insurance', 
     'Doctors',
-    'BankInformation',
-    'bank_infomation',  # deprecated, use BankInformation
+    'Clinic',
 ]

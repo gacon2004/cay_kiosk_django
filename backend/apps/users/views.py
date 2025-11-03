@@ -10,7 +10,7 @@ from .views import (
     PatientViewSet,
     InsuranceViewSet,
     DoctorViewSet,
-    BankInformationViewSet,
+    ClinicViewSet
 )
 
 __all__ = [
@@ -18,5 +18,5 @@ __all__ = [
     "PatientViewSet",
     "InsuranceViewSet",
     "DoctorViewSet",
-    "BankInformationViewSet",
+    "ClinicViewSet",
 ]

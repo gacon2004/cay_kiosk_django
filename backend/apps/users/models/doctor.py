@@ -2,6 +2,7 @@
 MODEL LAYER - Doctor Model
 Quản lý thông tin bác sĩ
 """
+
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth import get_user_model
@@ -11,67 +12,48 @@ User = get_user_model()
 
 class Doctors(models.Model):
     """Model bác sĩ - Lưu trữ thông tin bác sĩ"""
-    
+
     doctor_id = models.CharField(
         max_length=20,
         unique=True,
         verbose_name="Mã bác sĩ",
-        help_text="Mã định danh bác sĩ"
+        help_text="Mã định danh bác sĩ",
     )
-    full_name = models.CharField(
-        max_length=100,
-        verbose_name="Họ và tên"
-    )
+    full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
     specialization = models.CharField(
         max_length=100,
         verbose_name="Chuyên khoa",
-        help_text="Ví dụ: Tim mạch, Nội khoa, Ngoại khoa..."
+        help_text="Ví dụ: Tim mạch, Nội khoa, Ngoại khoa...",
     )
-    phone = PhoneNumberField(
-        region="VN",
-        verbose_name="Số điện thoại"
-    )
-    email = models.EmailField(
-        verbose_name="Email",
-        unique=True
-    )
+    phone = PhoneNumberField(region="VN", verbose_name="Số điện thoại")
+    email = models.EmailField(verbose_name="Email", unique=True)
     user_id = models.OneToOneField(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='doctor_profile',
-        verbose_name="Tài khoản người dùng"
+        related_name="doctor_profile",
+        verbose_name="Tài khoản người dùng",
     )
     years_of_experience = models.PositiveIntegerField(
-        verbose_name="Số năm kinh nghiệm",
-        default=0
+        verbose_name="Số năm kinh nghiệm", default=0
     )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name="Đang hoạt động"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Ngày tạo"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Ngày cập nhật"
-    )
+    is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
 
     class Meta:
         verbose_name = "Bác sĩ"
         verbose_name_plural = "Bác sĩ"
-        ordering = ['full_name']
+        ordering = ["full_name"]
         indexes = [
-            models.Index(fields=['doctor_id']),
-            models.Index(fields=['specialization']),
+            models.Index(fields=["doctor_id"]),
+            models.Index(fields=["specialization"]),
         ]
 
     def __str__(self):
         return f"BS. {self.full_name} - {self.specialization}"
-    
+
     @property
     def title(self):
         """Trả về danh xưng với tên"""

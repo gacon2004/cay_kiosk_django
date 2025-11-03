@@ -6,12 +6,12 @@ from .user_view import UserViewSet
 from .patient_view import PatientViewSet
 from .insurance_view import InsuranceViewSet
 from .doctor_view import DoctorViewSet
-from .bank_view import BankInformationViewSet
+from .clinic_view import ClinicViewSet  # Import ViewSet cho Clinic
 
 __all__ = [
     'UserViewSet',
     'PatientViewSet',
     'InsuranceViewSet',
     'DoctorViewSet',
-    'BankInformationViewSet',
+    'ClinicViewSet',  # Export ClinicViewSet
 ]

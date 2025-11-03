@@ -16,15 +16,18 @@ from .doctor_serializer import (
     DoctorListSerializer,
     DoctorDetailSerializer,
 )
-from .bank_serializer import (
-    BankInformationSerializer,
-    BankInformationListSerializer,
-)
 from .user_serializer import (
     UserSerializer,
     UserListSerializer,
     UserCreateSerializer,
     UserUpdateSerializer,
+)
+# Import các serializers cho Clinic
+from .clinic_serializer import (
+    ClinicSerializer,
+    ClinicListSerializer,
+    ClinicCreateSerializer,
+    ClinicUpdateSerializer,
 )
 
 __all__ = [
@@ -39,12 +42,14 @@ __all__ = [
     'DoctorSerializer',
     'DoctorListSerializer',
     'DoctorDetailSerializer',
-    # Bank
-    'BankInformationSerializer',
-    'BankInformationListSerializer',
     # User
     'UserSerializer',
     'UserListSerializer',
     'UserCreateSerializer',
     'UserUpdateSerializer',
+    # Clinic
+    'ClinicSerializer',
+    'ClinicListSerializer',
+    'ClinicCreateSerializer',
+    'ClinicUpdateSerializer',
 ]

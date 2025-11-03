@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import home  # Import home view
 
 urlpatterns = [
+    path('', home, name='home'),  # Root URL → Trang chủ API
     path('admin/', admin.site.urls),
-    path('api/', include('apps.api.urls')),
     path('api/auth/', include('apps.authentication.urls')),
     path('api/users/', include('apps.users.urls')),
 ]
