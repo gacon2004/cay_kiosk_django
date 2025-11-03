@@ -45,8 +45,8 @@ def home(request):
                 'deactivate': '/api/users/clinics/{id}/deactivate/',
             },
         },
-        'documentation': {
-            'swagger': '/api/swagger/',
-            'redoc': '/api/redoc/',
-        }
+        # 'documentation': {
+        #     'swagger': '/api/swagger/',
+        #     'redoc': '/api/redoc/',
+        # }
     })

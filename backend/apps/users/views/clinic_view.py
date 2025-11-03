@@ -1,15 +1,24 @@
 """
 CONTROLLER LAYER - Clinic ViewSet
 Xử lý các HTTP requests liên quan đến phòng khám
+
+TRÁCH NHIỆM:
+- Nhận HTTP Request (GET, POST, PUT, DELETE...)
+- Validate input data (dùng Serializer)
+- GỌI Service Layer để xử lý business logic
+- Trả về HTTP Response (JSON)
+
+KHÔNG LÀM:
+- Business logic (để trong Service)
+- Direct database queries (để trong Service)
+- Complex validation (để trong Service)
 """
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny  # Import AllowAny permission
-from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from rest_framework.permissions import AllowAny
+from django.core.exceptions import ValidationError
 
 from apps.users.models import Clinic
 from apps.users.serializers import (
@@ -18,51 +27,85 @@ from apps.users.serializers import (
     ClinicCreateSerializer,
     ClinicUpdateSerializer,
 )
+from apps.users.services import ClinicService
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class ClinicViewSet(viewsets.ModelViewSet):
     """
-    ViewSet để quản lý phòng khám
+    ViewSet để quản lý phòng khám (CRUD operations)
     
-    Endpoints:
-    - GET /clinics/ - Lấy danh sách phòng khám
-    - POST /clinics/ - Tạo phòng khám mới
-    - GET /clinics/{id}/ - Lấy chi tiết 1 phòng khám
-    - PUT/PATCH /clinics/{id}/ - Cập nhật phòng khám
-    - DELETE /clinics/{id}/ - Xóa phòng khám
-    - GET /clinics/active/ - Lấy các phòng khám đang hoạt động
-    - POST /clinics/{id}/activate/ - Kích hoạt phòng khám
-    - POST /clinics/{id}/deactivate/ - Vô hiệu hóa phòng khám
+    Kế thừa từ ModelViewSet → Tự động có các actions:
+    - list()    : GET    /clinics/           → Danh sách
+    - create()  : POST   /clinics/           → Tạo mới
+    - retrieve(): GET    /clinics/{id}/      → Chi tiết
+    - update()  : PUT    /clinics/{id}/      → Update toàn bộ
+    - partial_update(): PATCH /clinics/{id}/ → Update một phần
+    - destroy() : DELETE /clinics/{id}/      → Xóa
+    
+    Custom actions (@action decorator):
+    - active()     : GET  /clinics/active/        → Lấy clinics đang hoạt động
+    - activate()   : POST /clinics/{id}/activate/ → Kích hoạt clinic
+    - deactivate() : POST /clinics/{id}/deactivate/ → Vô hiệu hóa clinic
+    
+    Tham khảo:
+    - ModelViewSet: https://www.django-rest-framework.org/api-guide/viewsets/#modelviewset
+    - Actions: https://www.django-rest-framework.org/api-guide/viewsets/#marking-extra-actions-for-routing
     """
     
-    # QuerySet lấy tất cả phòng khám, sắp xếp theo tên
+    # queryset: QuerySet mặc định cho ViewSet
+    # DRF sẽ dùng queryset này để lấy data cho các CRUD operations
     queryset = Clinic.objects.all().order_by('name')
-    # Serializer mặc định
+    
+    # serializer_class: Serializer mặc định
+    # Có thể override bằng get_serializer_class() để dùng serializer khác nhau cho từng action
     serializer_class = ClinicSerializer
-    # Cho phép truy cập không cần authentication (để test)
+    
+    # permission_classes: Danh sách permission classes
+    # AllowAny = Cho phép tất cả (không cần authentication)
+    # CẢNH BÁO: Chỉ dùng AllowAny trong development/testing!
+    # Production nên dùng: IsAuthenticated, IsAdminUser, hoặc custom permission
     permission_classes = [AllowAny]
     
     def get_permissions(self):
         """
-        Override để force AllowAny permission cho tất cả actions
+        Override method get_permissions() để customize permission cho từng action
+        
+        Ví dụ phân quyền thực tế (UNCOMMENT khi production):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]  # Chỉ admin mới được tạo/sửa/xóa
+        elif self.action in ['activate', 'deactivate']:
+            return [IsAdminUser()]  # Chỉ admin mới activate/deactivate
+        return [IsAuthenticated()]  # Các action khác cần đăng nhập
+        
+        Returns:
+            list: Danh sách permission instances
         """
+        # Tạm thời return AllowAny() cho tất cả actions (để test)
         return [AllowAny()]
     
     def get_serializer_class(self):
         """
-        Override method để chọn serializer phù hợp với từng action
-        - list: dùng ClinicListSerializer (rút gọn)
-        - create: dùng ClinicCreateSerializer (validation tạo mới)
-        - update/partial_update: dùng ClinicUpdateSerializer (validation update)
-        - còn lại: dùng ClinicSerializer (đầy đủ)
+        Override method để chọn Serializer phù hợp với từng action
+        
+        Lý do: Mỗi action có yêu cầu data khác nhau
+        - list: Không cần đầy đủ fields → dùng ClinicListSerializer (nhẹ hơn)
+        - create: Cần validate khi tạo mới → dùng ClinicCreateSerializer
+        - update/partial_update: Cần validate khi update → dùng ClinicUpdateSerializer
+        - retrieve: Cần đầy đủ thông tin → dùng ClinicSerializer
+        
+        Returns:
+            Serializer class: Class serializer tương ứng với action
         """
         if self.action == 'list':
+            # List: Trả về rút gọn (không cần created_at, updated_at...)
             return ClinicListSerializer
         elif self.action == 'create':
+            # Create: Validate các trường bắt buộc khi tạo mới
             return ClinicCreateSerializer
         elif self.action in ['update', 'partial_update']:
+            # Update: Validate khi cập nhật (cho phép partial)
             return ClinicUpdateSerializer
+        # Default: Trả về đầy đủ thông tin
         return ClinicSerializer
     
     def list(self, request, *args, **kwargs):
@@ -74,19 +117,16 @@ class ClinicViewSet(viewsets.ModelViewSet):
         - is_active: filter theo trạng thái (true/false)
         - search: tìm kiếm theo tên phòng
         """
-        # Lấy queryset
-        queryset = self.filter_queryset(self.get_queryset())
+        # Parse query params
+        is_active_param = request.query_params.get('is_active', None)
+        is_active = None
+        if is_active_param is not None:
+            is_active = is_active_param.lower() == 'true'
         
-        # Filter theo trạng thái nếu có
-        is_active = request.query_params.get('is_active', None)
-        if is_active is not None:
-            is_active_bool = is_active.lower() == 'true'
-            queryset = queryset.filter(is_active=is_active_bool)
-        
-        # Search theo tên phòng nếu có
         search = request.query_params.get('search', None)
-        if search:
-            queryset = queryset.filter(name__icontains=search)
+        
+        # GỌI SERVICE LAYER để lấy data
+        queryset = ClinicService.get_all_clinics(is_active=is_active, search=search)
         
         # Serialize data
         serializer = self.get_serializer(queryset, many=True)
@@ -107,29 +147,41 @@ class ClinicViewSet(viewsets.ModelViewSet):
             "is_active": true
         }
         """
-        # Validate và serialize data
+        # Validate request data với serializer
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # Lưu vào database
-        self.perform_create(serializer)
         
-        # Trả về data đầy đủ với ClinicSerializer
-        clinic = serializer.instance
-        response_serializer = ClinicSerializer(clinic)
-        
-        return Response(
-            response_serializer.data,
-            status=status.HTTP_201_CREATED
-        )
+        try:
+            # GỌI SERVICE LAYER để tạo clinic
+            clinic = ClinicService.create_clinic(serializer.validated_data)
+            
+            # Trả về data đầy đủ
+            response_serializer = ClinicSerializer(clinic)
+            return Response(
+                response_serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     def retrieve(self, request, *args, **kwargs):
         """
         GET /clinics/{id}/
         Lấy chi tiết 1 phòng khám
         """
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        try:
+            # GỌI SERVICE LAYER để lấy clinic
+            clinic = ClinicService.get_clinic_by_id(self.kwargs['pk'])
+            serializer = self.get_serializer(clinic)
+            return Response(serializer.data)
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_404_NOT_FOUND
+            )
     
     def update(self, request, *args, **kwargs):
         """
@@ -137,17 +189,24 @@ class ClinicViewSet(viewsets.ModelViewSet):
         Cập nhật toàn bộ thông tin phòng khám
         """
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
+        clinic_id = self.kwargs['pk']
         
-        # Validate và serialize data
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        # Validate request data
+        serializer = self.get_serializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        # Lưu vào database
-        self.perform_update(serializer)
         
-        # Trả về data đầy đủ
-        response_serializer = ClinicSerializer(instance)
-        return Response(response_serializer.data)
+        try:
+            # GỌI SERVICE LAYER để update clinic
+            clinic = ClinicService.update_clinic(clinic_id, serializer.validated_data)
+            
+            # Trả về data đầy đủ
+            response_serializer = ClinicSerializer(clinic)
+            return Response(response_serializer.data)
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     def partial_update(self, request, *args, **kwargs):
         """
@@ -162,23 +221,44 @@ class ClinicViewSet(viewsets.ModelViewSet):
         DELETE /clinics/{id}/
         Xóa phòng khám
         """
-        instance = self.get_object()
-        clinic_name = instance.name
-        self.perform_destroy(instance)
+        clinic_id = self.kwargs['pk']
         
-        return Response(
-            {'message': f'Đã xóa phòng khám "{clinic_name}" thành công'},
-            status=status.HTTP_200_OK
-        )
+        try:
+            # Lấy tên clinic trước khi xóa
+            clinic = ClinicService.get_clinic_by_id(clinic_id)
+            clinic_name = clinic.name
+            
+            # GỌI SERVICE LAYER để xóa clinic
+            ClinicService.delete_clinic(clinic_id)
+            
+            return Response(
+                {'message': f'Đã xóa phòng khám "{clinic_name}" thành công'},
+                status=status.HTTP_200_OK
+            )
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_404_NOT_FOUND
+            )
     
     @action(detail=False, methods=['get'])
     def active(self, request):
         """
-        GET /clinics/active/
-        Lấy danh sách các phòng khám đang hoạt động
+        Custom action: Lấy danh sách các phòng khám đang hoạt động
+        
+        Endpoint: GET /clinics/active/
+        
+        @action decorator giải thích:
+        - detail=False: Không cần {id} trong URL (/clinics/active/ thay vì /clinics/{id}/active/)
+        - methods=['get']: Chỉ cho phép HTTP GET method
+        
+        Tham khảo: https://www.django-rest-framework.org/api-guide/viewsets/#marking-extra-actions-for-routing
+        
+        Returns:
+            Response: JSON với count và results
         """
-        # Filter chỉ lấy phòng khám is_active=True
-        queryset = self.get_queryset().filter(is_active=True)
+        # GỌI SERVICE LAYER để lấy active clinics
+        queryset = ClinicService.get_active_clinics()
         serializer = ClinicListSerializer(queryset, many=True)
         
         return Response({
@@ -189,51 +269,69 @@ class ClinicViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         """
-        POST /clinics/{id}/activate/
-        Kích hoạt phòng khám
+        Custom action: Kích hoạt phòng khám
+        
+        Endpoint: POST /clinics/{id}/activate/
+        
+        @action decorator giải thích:
+        - detail=True: CẦN {id} trong URL (/clinics/{id}/activate/)
+        - methods=['post']: Chỉ cho phép HTTP POST (vì thay đổi state)
+        
+        Args:
+            request: HTTP Request object
+            pk (int): Primary key của clinic (lấy từ URL)
+        
+        Returns:
+            Response: JSON với message và data đã update
         """
-        # Lấy clinic theo pk
-        clinic = self.get_object()
-        
-        # Kiểm tra đã active chưa
-        if clinic.is_active:
+        try:
+            # GỌI SERVICE LAYER để activate clinic
+            clinic = ClinicService.activate_clinic(pk)
+            
+            # Serialize data để trả về
+            serializer = ClinicSerializer(clinic)
+            return Response({
+                'message': f'Đã kích hoạt phòng khám "{clinic.name}" thành công',
+                'data': serializer.data
+            })
+        except ValidationError as e:
+            # Xử lý lỗi từ Service layer
             return Response(
-                {'message': f'Phòng khám "{clinic.name}" đã ở trạng thái hoạt động'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': str(e)},
+                status=status.HTTP_404_NOT_FOUND
             )
-        
-        # Kích hoạt phòng khám
-        clinic.activate()
-        
-        # Trả về data đã update
-        serializer = ClinicSerializer(clinic)
-        return Response({
-            'message': f'Đã kích hoạt phòng khám "{clinic.name}" thành công',
-            'data': serializer.data
-        })
     
     @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
         """
-        POST /clinics/{id}/deactivate/
-        Vô hiệu hóa phòng khám
+        Custom action: Vô hiệu hóa phòng khám
+        
+        Endpoint: POST /clinics/{id}/deactivate/
+        
+        @action decorator giải thích:
+        - detail=True: CẦN {id} trong URL (/clinics/{id}/deactivate/)
+        - methods=['post']: Chỉ cho phép HTTP POST (vì thay đổi state)
+        
+        Args:
+            request: HTTP Request object
+            pk (int): Primary key của clinic (lấy từ URL)
+        
+        Returns:
+            Response: JSON với message và data đã update
         """
-        # Lấy clinic theo pk
-        clinic = self.get_object()
-        
-        # Kiểm tra đã inactive chưa
-        if not clinic.is_active:
+        try:
+            # GỌI SERVICE LAYER để deactivate clinic
+            clinic = ClinicService.deactivate_clinic(pk)
+            
+            # Serialize data để trả về
+            serializer = ClinicSerializer(clinic)
+            return Response({
+                'message': f'Đã vô hiệu hóa phòng khám "{clinic.name}" thành công',
+                'data': serializer.data
+            })
+        except ValidationError as e:
+            # Xử lý lỗi từ Service layer
             return Response(
-                {'message': f'Phòng khám "{clinic.name}" đã ở trạng thái ngừng hoạt động'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': str(e)},
+                status=status.HTTP_404_NOT_FOUND
             )
-        
-        # Vô hiệu hóa phòng khám
-        clinic.deactivate()
-        
-        # Trả về data đã update
-        serializer = ClinicSerializer(clinic)
-        return Response({
-            'message': f'Đã vô hiệu hóa phòng khám "{clinic.name}" thành công',
-            'data': serializer.data
-        })

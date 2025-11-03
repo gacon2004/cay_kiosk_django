@@ -5,7 +5,7 @@ Chuyển đổi Patient model thành JSON và validate input
 
 from rest_framework import serializers
 from apps.users.models import Patients
-
+from insurance_serializer import InsuranceSerializer
 
 class PatientSerializer(serializers.ModelSerializer):
     """Serializer cho bệnh nhân"""
@@ -23,10 +23,7 @@ class PatientSerializer(serializers.ModelSerializer):
             "age",
             "gender",
             "phone",
-            "ward",
-            "district",
-            "city",
-            "full_address",
+            "address",
             "occupation",
             "ethnicity",
             "created_at",
@@ -34,39 +31,33 @@ class PatientSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ("id", "created_at", "updated_at", "age")
 
-    def get_full_address(self, obj):
-        """Lấy địa chỉ đầy đủ"""
-        return obj.get_full_address()
-
-    def validate_national_id(self, value):
+    def validate_national_id(self, national_id: str) -> str:
         """Validate số CMND/CCCD"""
-        if not value.isdigit():
+        if not national_id.isdigit():
             raise serializers.ValidationError("CMND/CCCD phải là số")
-        if len(value) not in [9, 12]:
+        if len(national_id) not in [9, 12]:
             raise serializers.ValidationError("CMND phải 9 số hoặc CCCD phải 12 số")
-        return value
+        return national_id
 
-    def validate_date_of_birth(self, value):
+    def validate_date_of_birth(self, date_of_birth: str) -> str:
         """Validate ngày sinh"""
         from datetime import date
 
-        if value > date.today():
+        if date_of_birth > date.today():
             raise serializers.ValidationError(
                 "Ngày sinh không thể lớn hơn ngày hiện tại"
             )
 
-        age = date.today().year - value.year
+        age = date.today().year - date_of_birth.year
         if age > 150:
             raise serializers.ValidationError("Tuổi không hợp lệ")
 
-        return value
+        return date_of_birth
 
 
 class PatientListSerializer(serializers.ModelSerializer):
     """Serializer đơn giản cho danh sách bệnh nhân"""
-
     age = serializers.ReadOnlyField()
-
     class Meta:
         model = Patients
         fields = [
@@ -85,7 +76,7 @@ class PatientDetailSerializer(serializers.ModelSerializer):
     """Serializer chi tiết cho bệnh nhân (bao gồm insurance)"""
 
     age = serializers.ReadOnlyField()
-    full_address = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
     insurances = serializers.SerializerMethodField()
 
     class Meta:
@@ -93,12 +84,8 @@ class PatientDetailSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("id", "created_at", "updated_at")
 
-    def get_full_address(self, obj):
-        return obj.get_full_address()
-
-    def get_insurances(self, obj):
+    def get_insurances(self, obj: Patients) -> list[dict]:
         """Lấy danh sách bảo hiểm của bệnh nhân"""
-        from .insurance_serializer import InsuranceSerializer
 
         insurances = obj.insurances.all()
         return InsuranceSerializer(insurances, many=True).data

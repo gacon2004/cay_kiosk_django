@@ -3,6 +3,7 @@ VIEW LAYER (Serializers) - Clinic Serializer
 Serializers cho Clinic model
 """
 
+from typing import Any
 from rest_framework import serializers
 from apps.users.models import Clinic
 
@@ -12,9 +13,6 @@ class ClinicSerializer(serializers.ModelSerializer):
     Serializer đầy đủ cho Clinic
     Sử dụng cho detail view và create/update operations
     """
-    
-    # Field tùy chỉnh để hiển thị trạng thái dễ đọc
-    status_display = serializers.ReadOnlyField()
     
     class Meta:
         # Model để serialize
@@ -31,19 +29,28 @@ class ClinicSerializer(serializers.ModelSerializer):
         # Các fields chỉ đọc, không cho phép client cập nhật
         read_only_fields = ['id', 'created_at', 'updated_at', 'is_active']
     
-    def validate_name(self, value):
+    def validate_name(self, value: str) -> str:
         """
         Validate tên phòng khám không được trống hoặc chỉ có khoảng trắng
+        
+        Args:
+            value: Tên phòng khám cần validate
+        
+        Returns:
+            str: Tên phòng khám đã được strip
+        
+        Raises:
+            ValidationError: Nếu tên không hợp lệ
         """
         # Strip khoảng trắng đầu cuối
-        value = value.strip()
+        value_name = value.strip()
         # Kiểm tra tên có rỗng không
-        if not value:
+        if not value_name:
             raise serializers.ValidationError("Tên phòng khám không được để trống")
         # Kiểm tra độ dài tối thiểu
-        if len(value) < 3:
+        if len(value_name) < 3:
             raise serializers.ValidationError("Tên phòng khám phải có ít nhất 3 ký tự")
-        return value
+        return value_name
 
 
 class ClinicListSerializer(serializers.ModelSerializer):
@@ -52,9 +59,6 @@ class ClinicListSerializer(serializers.ModelSerializer):
     Chỉ trả về các fields cần thiết cho list view
     Giúp giảm dung lượng response
     """
-    
-    # Field hiển thị trạng thái dạng text
-    status_display = serializers.ReadOnlyField()
     
     class Meta:
         model = Clinic
@@ -73,10 +77,19 @@ class ClinicCreateSerializer(serializers.ModelSerializer):
         # Các fields cần thiết khi tạo mới
         fields = ['name', 'address', 'is_active']
     
-    def validate_name(self, value):
+    def validate_name(self, value: str) -> str:
         """
         Validate tên phòng khám
         Kiểm tra tên không trùng (case-insensitive)
+        
+        Args:
+            value: Tên phòng khám cần validate
+        
+        Returns:
+            str: Tên phòng khám đã được strip
+        
+        Raises:
+            ValidationError: Nếu tên trống hoặc đã tồn tại
         """
         value = value.strip()
         if not value:
@@ -99,10 +112,19 @@ class ClinicUpdateSerializer(serializers.ModelSerializer):
         # Các fields có thể update
         fields = ['name', 'address', 'is_active']
     
-    def validate_name(self, value):
+    def validate_name(self, value: str) -> str:
         """
         Validate tên phòng khám khi update
         Kiểm tra tên không trùng với phòng khác (trừ chính nó)
+        
+        Args:
+            value: Tên phòng khám cần validate
+        
+        Returns:
+            str: Tên phòng khám đã được strip
+        
+        Raises:
+            ValidationError: Nếu tên trống hoặc trùng với phòng khác
         """
         value = value.strip()
         if not value:

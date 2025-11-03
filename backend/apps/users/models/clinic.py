@@ -70,14 +70,6 @@ class Clinic(models.Model):
         """
         return self.name
     
-    @property
-    def status_display(self):
-        """
-        Property để hiển thị trạng thái dễ đọc
-        Returns: "Đang hoạt động" hoặc "Ngừng hoạt động"
-        """
-        return "Đang hoạt động" if self.is_active else "Ngừng hoạt động"
-    
     def activate(self):
         """
         Method để kích hoạt phòng khám

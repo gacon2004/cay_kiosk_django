@@ -5,7 +5,7 @@ Quản lý thông tin bệnh nhân
 
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
-
+from datetime import date
 
 # Migration là "lịch sử thay đổi database" - giống như Git cho database
 # python manage.py makemigrations  # Tạo file migration này
@@ -24,7 +24,7 @@ class Patients(models.Model):
         max_length=12,
         unique=True,
         verbose_name="CMND/CCCD",
-        help_text="Số chứng minh nhân dân hoặc căn cước công dân",
+        help_text="Số căn cước công dân",
     )
     full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
     date_of_birth = models.DateField(verbose_name="Ngày sinh")
@@ -58,8 +58,6 @@ class Patients(models.Model):
     @property
     def age(self):
         """Tính tuổi bệnh nhân"""
-        from datetime import date
-
         today = date.today()
         return (
             today.year
