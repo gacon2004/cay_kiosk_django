@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-g6n&uq9349isi$lqj0*k0!j%$6@02np!((ablurp6x_%jcg9#g
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 PHONENUMBER_DEFAULT_REGION = 'VN'
-
+APPEND_SLASH = False
 
 # Application definition
 
@@ -43,11 +43,11 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'corsheaders',
+    'django_filters',
     
     # Your apps - đổi tên cho rõ ràng
-    'apps.users',
+    'apps.kiosk',
     'apps.authentication',
-    # 'apps.api',
 ]
 
 MIDDLEWARE = [
@@ -85,12 +85,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -177,15 +171,13 @@ REST_FRAMEWORK = {
     
     # Filtering
     'DEFAULT_FILTER_BACKENDS': [
-        # 'django_filters.rest_framework.DjangoFilterBackend',  # Tắt nếu chưa cài django-filter
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
+        'django_filters.rest_framework.DjangoFilterBackend',  # nếu bạn đang dùng filter
     ],
     
     # Renderer (format trả về)
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',  # API browsable UI
+        'rest_framework.renderers.BrowsableAPIRenderer',  # 🔹 để hiển thị giao diện web
     ],
     
     # Parser (format nhận vào)
@@ -275,8 +267,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# #  CUSTOM USER MODEL (NẾU DÙNG) 
-# # AUTH_USER_MODEL = 'authentication.CustomUser'  # Bỏ comment nếu dùng CustomUser
+# ============= CUSTOM USER MODEL =============
+# QUAN TRỌNG: Phải set TRƯỚC KHI chạy migrate lần đầu
+AUTH_USER_MODEL = 'kiosk.CustomUser'  # app_name.ModelName
 
 # #  EMAIL CONFIGURATION (CHO RESET PASSWORD, VERIFY EMAIL)
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Dev: in ra console

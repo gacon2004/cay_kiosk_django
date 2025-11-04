@@ -268,3 +268,5 @@ id_rsa.pub
 !.flake8
 !.pylintrc
 !pyproject.toml
+
+/guide

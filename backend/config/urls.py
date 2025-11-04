@@ -18,13 +18,18 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import home  # Import home view
 
 urlpatterns = [
-    path('', home, name='home'),  # Root URL → Trang chủ API
-    path('admin/', admin.site.urls),
-    path('api/auth/', include('apps.authentication.urls')),
-    path('api/users/', include('apps.users.urls')),
+    # ===== ADMIN PANEL =====
+    path('admin', admin.site.urls),
+    
+    # ===== AUTHENTICATION API =====
+    # /api/auth/login/, /api/auth/register/, /api/auth/logout/...
+    path('api/auth', include('apps.authentication.urls')),
+    
+    # ===== KIOSK API =====
+    # /api/users/, /api/doctors/, /api/clinics/, /api/patients/...
+    path('api', include('apps.kiosk.urls')),
 ]
 
 # Serve media files trong development
