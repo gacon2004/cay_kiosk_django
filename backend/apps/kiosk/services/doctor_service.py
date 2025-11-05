@@ -21,9 +21,6 @@ class DoctorService:
     def get_list_doctor():
         """
         Lấy danh sách tất cả bác sĩ
-        
-        Returns:
-            QuerySet: Danh sách bác sĩ
         """
         return Doctors.objects.all().order_by('full_name')
     
