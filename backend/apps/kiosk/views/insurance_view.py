@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from datetime import date, timedelta
+from apps.kiosk.services.patient_service import PatientService
 
 from apps.kiosk.models import Insurance
 from apps.kiosk.serializers import (
@@ -42,7 +43,7 @@ class InsuranceViewSet(viewsets.ModelViewSet):
     filterset_fields = ['insurance_id', 'citizen_id']
     ordering_fields = ['valid_from','expired']
     ordering = ['-valid_from']
-    
+
     def get_serializer_class(self):
         """Chọn serializer phù hợp với action"""
         if self.action == 'list':
@@ -103,6 +104,8 @@ class InsuranceViewSet(viewsets.ModelViewSet):
         Kiểm tra tính hợp lệ của thẻ BHYT
         """
         insurance: Insurance = self.get_object()
+        # Đồng bộ trạng thái bảo hiểm cho bệnh nhân
+        PatientService.sync_patient_insurance_status(insurance.citizen_id)
         
         return Response({
             'insurance_id': insurance.insurance_id,
@@ -118,7 +121,7 @@ class InsuranceViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        
+        patient = PatientService.sync_patient_insurance_status(serializer.validated_data["citizen_id"])
         return Response({
             'message': 'Thêm thẻ bảo hiểm thành công!',
             'insurance': serializer.data

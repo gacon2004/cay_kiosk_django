@@ -20,11 +20,12 @@ class Patients(models.Model):
         ("Khác", "Khác"),
     ]
 
-    national_id = models.CharField(
+    citizen_id = models.CharField(
         max_length=12,
         unique=True,
         verbose_name="CMND/CCCD",
         help_text="Số căn cước công dân",
+        primary_key=True,
     )
     full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
     date_of_birth = models.DateField(verbose_name="Ngày sinh")
@@ -38,6 +39,7 @@ class Patients(models.Model):
     occupation = models.CharField(
         max_length=100, verbose_name="Nghề nghiệp", blank=True, null=True
     )
+    is_insurance = models.BooleanField(verbose_name="Có bảo hiểm", default=False)
     ethnicity = models.CharField(max_length=50, verbose_name="Dân tộc", default="Kinh")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
@@ -47,13 +49,13 @@ class Patients(models.Model):
         verbose_name_plural = "Bệnh nhân"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["national_id"]),
+            models.Index(fields=["citizen_id"]),
             models.Index(fields=["full_name"]),
             models.Index(fields=["-created_at"]),
         ]
 
     def __str__(self):
-        return f"{self.full_name} - {self.national_id}"
+        return f"{self.full_name} - {self.citizen_id}"
     
     @property
     def age(self):

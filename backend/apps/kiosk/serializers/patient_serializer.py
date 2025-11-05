@@ -16,8 +16,7 @@ class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
         fields = [
-            "id",
-            "national_id",
+            "citizen_id",
             "full_name",
             "date_of_birth",
             "age",
@@ -31,13 +30,13 @@ class PatientSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ("id", "created_at", "updated_at", "age")
 
-    def validate_national_id(self, national_id: str) -> str:
+    def validate_citizen_id(self, citizen_id: str) -> str:
         """Validate số CMND/CCCD"""
-        if not national_id.isdigit():
+        if not citizen_id.isdigit():
             raise serializers.ValidationError("CMND/CCCD phải là số")
-        if len(national_id) not in [9, 12]:
+        if len(citizen_id) not in [9, 12]:
             raise serializers.ValidationError("CMND phải 9 số hoặc CCCD phải 12 số")
-        return national_id
+        return citizen_id
 
     def validate_date_of_birth(self, date_of_birth: str) -> str:
         """Validate ngày sinh"""
@@ -61,8 +60,7 @@ class PatientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
         fields = [
-            "id",
-            "national_id",
+            "citizen_id",
             "full_name",
             "date_of_birth",
             "age",
@@ -70,7 +68,7 @@ class PatientListSerializer(serializers.ModelSerializer):
             "gender",
             "phone",
         ]
-        read_only_fields = ("id",)
+        read_only_fields = ("citizen_id",)
 
 
 class PatientDetailSerializer(serializers.ModelSerializer):
@@ -83,10 +81,4 @@ class PatientDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patients
         fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
-
-    def get_insurances(self, obj: Patients) -> list[dict]:
-        """Lấy danh sách bảo hiểm của bệnh nhân"""
-
-        insurances = obj.insurances.all()
-        return InsuranceSerializer(insurances, many=True).data
+        read_only_fields = ("citizen_id", "created_at", "updated_at")

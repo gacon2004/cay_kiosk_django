@@ -32,25 +32,45 @@ class PatientService:
             # Tạo bảo hiểm nếu có
             insurance = None
             if insurance_data:
-                insurance_data['patient_id'] = patient
+                insurance_data['citizen_id'] = patient.citizen_id
                 insurance = Insurance.objects.create(**insurance_data)
-            
+                patient.is_insurance = True
+                patient.save(update_fields=["is_insurance"])
+                        
             return patient, insurance
     
     @staticmethod
-    def update_patient_info(patient_id, update_data):
+    def sync_patient_insurance_status(citizen_id: str):
+        """
+        Đồng bộ trạng thái is_insurance của bệnh nhân dựa vào dữ liệu bảo hiểm.
+        
+        Nếu bệnh nhân có thẻ BHYT hợp lệ -> is_insurance = True
+        Ngược lại -> is_insurance = False
+        """
+        try:
+            patient = Patients.objects.get(citizen_id=citizen_id)
+            has_insurance = Insurance.objects.filter(citizen_id=citizen_id).exists()
+            
+            patient.is_insurance = has_insurance
+            patient.save(update_fields=["is_insurance"])
+            return patient
+        except Patients.DoesNotExist:
+            return None
+    
+    @staticmethod
+    def update_patient_info(citizen_id, update_data):
         """
         Cập nhật thông tin bệnh nhân với validation
         
         Args:
-            patient_id (int): ID bệnh nhân
+            citizen_id (str): CMND/CCCD của bệnh nhân
             update_data (dict): Dữ liệu cần cập nhật
         
         Returns:
             Patients: Bệnh nhân đã cập nhật
         """
         try:
-            patient = Patients.objects.get(id=patient_id)
+            patient = Patients.objects.get(citizen_id=citizen_id)
             
             for key, value in update_data.items():
                 if hasattr(patient, key):
@@ -61,21 +81,21 @@ class PatientService:
             
             return patient
         except Patients.DoesNotExist:
-            raise ValidationError(f"Không tìm thấy bệnh nhân với ID {patient_id}")
-    
+            raise ValidationError(f"Không tìm thấy bệnh nhân với CMND/CCCD {citizen_id}")
+
     @staticmethod
-    def find_patient_by_national_id(national_id):
+    def find_patient_by_citizen_id(citizen_id):
         """
         Tìm bệnh nhân theo CMND/CCCD
         
         Args:
-            national_id (str): Số CMND/CCCD
+            citizen_id (str): Số CMND/CCCD
         
         Returns:
             Patients hoặc None
         """
         try:
-            return Patients.objects.get(national_id=national_id)
+            return Patients.objects.get(citizen_id=citizen_id)
         except Patients.DoesNotExist:
             return None
     
@@ -117,18 +137,18 @@ class PatientService:
         ).distinct()
     
     @staticmethod
-    def check_duplicate_national_id(national_id, exclude_id=None):
+    def check_duplicate_citizen_id(citizen_id, exclude_id=None):
         """
         Kiểm tra CMND/CCCD có bị trùng không
         
         Args:
-            national_id (str): Số CMND/CCCD cần kiểm tra
+            citizen_id (str): Số CMND/CCCD cần kiểm tra
             exclude_id (int): ID bệnh nhân cần loại trừ (dùng khi update)
         
         Returns:
             bool: True nếu trùng, False nếu không trùng
         """
-        query = Patients.objects.filter(national_id=national_id)
+        query = Patients.objects.filter(citizen_id=citizen_id)
         
         if exclude_id:
             query = query.exclude(id=exclude_id)
