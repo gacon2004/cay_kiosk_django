@@ -38,10 +38,10 @@ class InsuranceViewSet(viewsets.ModelViewSet):
     
     # Filters, Search, Ordering
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['insurance_number', 'patient_id__full_name', 'patient_id__national_id']
-    filterset_fields = ['insurance_type', 'patient_id']
-    ordering_fields = ['created_at', 'expiry_date']
-    ordering = ['-created_at']
+    search_fields = ['insurance_id', 'citizen_id', 'fullname']
+    filterset_fields = ['insurance_id', 'citizen_id']
+    ordering_fields = ['valid_from','expired']
+    ordering = ['-valid_from']
     
     def get_serializer_class(self):
         """Chọn serializer phù hợp với action"""
@@ -55,7 +55,7 @@ class InsuranceViewSet(viewsets.ModelViewSet):
         GET /api/insurance/valid/
         Lấy danh sách thẻ BHYT còn hiệu lực
         """
-        valid_insurances = Insurance.objects.filter(expiry_date__gte=date.today())
+        valid_insurances = Insurance.objects.filter(expired__gte=date.today())
         serializer = self.get_serializer(valid_insurances, many=True)
         return Response({
             'count': valid_insurances.count(),
@@ -68,7 +68,7 @@ class InsuranceViewSet(viewsets.ModelViewSet):
         GET /api/insurance/expired/
         Lấy danh sách thẻ BHYT đã hết hạn
         """
-        expired_insurances = Insurance.objects.filter(expiry_date__lt=date.today())
+        expired_insurances = Insurance.objects.filter(expired__lt=date.today())
         serializer = self.get_serializer(expired_insurances, many=True)
         return Response({
             'count': expired_insurances.count(),
@@ -85,8 +85,8 @@ class InsuranceViewSet(viewsets.ModelViewSet):
         threshold_date = date.today() + timedelta(days=days)
         
         expiring_insurances = Insurance.objects.filter(
-            expiry_date__gte=date.today(),
-            expiry_date__lte=threshold_date
+            expired__gte=date.today(),
+            expired__lte=threshold_date
         )
         
         serializer = self.get_serializer(expiring_insurances, many=True)
@@ -102,12 +102,12 @@ class InsuranceViewSet(viewsets.ModelViewSet):
         GET /api/insurance/{id}/check_validity/
         Kiểm tra tính hợp lệ của thẻ BHYT
         """
-        insurance = self.get_object()
+        insurance: Insurance = self.get_object()
         
         return Response({
-            'insurance_number': insurance.insurance_number,
-            'patient_name': insurance.patient_id.full_name,
-            'expiry_date': insurance.expiry_date,
+            'insurance_id': insurance.insurance_id,
+            'fullname': insurance.fullname,
+            'expired': insurance.expired,
             'is_valid': insurance.is_valid,
             'days_until_expiry': insurance.days_until_expiry(),
             'status': 'Còn hiệu lực' if insurance.is_valid else 'Hết hiệu lực'
