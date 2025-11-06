@@ -3,27 +3,27 @@ VIEW LAYER (Serializers) - Insurance Serializer
 Chuyển đổi Insurance model thành JSON và validate input
 """
 
-from typing import Dict, Any, Optional
 from datetime import date
-from rest_framework import serializers
+from typing import Any, Dict, Optional
+
 from apps.kiosk.models import Insurance, Patients
+from rest_framework import serializers
 
 
 class InsuranceSerializer(serializers.ModelSerializer):
     """Serializer cho bảo hiểm y tế"""
+
     # FIX: Định dạng ngày tháng cho HTML input type="date" (yyyy-mm-dd)
     dob = serializers.DateField(
-        format="%d/%m/%Y", 
-        input_formats=["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
+        format="%d/%m/%Y", input_formats=["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
     )
     valid_from = serializers.DateField(
-        format="%d/%m/%Y", 
-        input_formats=["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
+        format="%d/%m/%Y", input_formats=["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
     )
     expired = serializers.DateField(
-        format="%d/%m/%Y", 
-        input_formats=["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
+        format="%d/%m/%Y", input_formats=["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
     )
+
     class Meta:
         model = Insurance
         fields = [
@@ -56,15 +56,15 @@ class InsuranceSerializer(serializers.ModelSerializer):
         """Validate số điện thoại"""
         # Loại bỏ khoảng trắng và dấu gạch ngang
         phone_number = phone_number.replace(" ", "").replace("-", "")
-        
+
         if not phone_number.isdigit():
             raise serializers.ValidationError("Số điện thoại chỉ chứa số")
 
         if len(phone_number) != 10:
             raise serializers.ValidationError("Số điện thoại phải có 10 số")
-        
+
         return phone_number
-    
+
     def validate_insurance_id(self, insurance_id: str) -> str:
         """
         Validate số thẻ BHYT
@@ -94,9 +94,7 @@ class InsuranceSerializer(serializers.ModelSerializer):
 
         # Kiểm tra ngày hết hạn
         if expired and expired < date.today():
-            raise serializers.ValidationError(
-                {"expired": "Ngày hết hạn đã qua"}
-            )
+            raise serializers.ValidationError({"expired": "Ngày hết hạn đã qua"})
 
         # Kiểm tra valid_from < expired
         if valid_from and expired and valid_from >= expired:
@@ -106,13 +104,11 @@ class InsuranceSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class InsuranceCheckSerializer(serializers.Serializer):
     """Serializer cho việc kiểm tra bảo hiểm"""
-    
-    citizen_id = serializers.CharField(
-        max_length=12,
-        help_text="Số CCCD cần kiểm tra"
-    )
+
+    citizen_id = serializers.CharField(max_length=12, help_text="Số CCCD cần kiểm tra")
 
     def validate_citizen_id(self, citizen_id: str) -> str:
         """Validate CCCD"""
@@ -122,11 +118,11 @@ class InsuranceCheckSerializer(serializers.Serializer):
             raise serializers.ValidationError("Số CCCD chỉ chứa số")
         return citizen_id
 
+
 class InsuranceListSerializer(serializers.ModelSerializer):
     """Serializer đơn giản cho danh sách bảo hiểm"""
-    is_valid = serializers.ReadOnlyField()
+
     days_until_expiry = serializers.ReadOnlyField()
-    gender_display = serializers.ReadOnlyField()
     dob = serializers.DateField(format="%d/%m/%Y")
     valid_from = serializers.DateField(format="%d/%m/%Y")
     expired = serializers.DateField(format="%d/%m/%Y")

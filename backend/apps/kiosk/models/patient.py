@@ -3,9 +3,11 @@ MODEL LAYER - Patient Model
 Quản lý thông tin bệnh nhân
 """
 
+from datetime import date
+
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
-from datetime import date
+
 
 # Migration là "lịch sử thay đổi database" - giống như Git cho database
 # python manage.py makemigrations  # Tạo file migration này
@@ -14,12 +16,6 @@ from datetime import date
 class Patients(models.Model):
     """Model bệnh nhân - Lưu trữ thông tin cá nhân bệnh nhân"""
 
-    GENDER_CHOICES = [
-        ("Nam", "Nam"),
-        ("Nữ", "Nữ"),
-        ("Khác", "Khác"),
-    ]
-
     citizen_id = models.CharField(
         max_length=12,
         unique=True,
@@ -27,12 +23,12 @@ class Patients(models.Model):
         help_text="Số căn cước công dân",
         primary_key=True,
     )
-    full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
-    date_of_birth = models.DateField(verbose_name="Ngày sinh")
-    gender = models.CharField(
-        max_length=10, choices=GENDER_CHOICES, verbose_name="Giới tính"
+    fullname = models.CharField(max_length=100, verbose_name="Họ và tên")
+    dob = models.DateField(verbose_name="Ngày sinh")
+    gender = models.BooleanField(
+        choices=[(True, "Nam"), (False, "Nữ")], verbose_name="Giới tính"
     )
-    phone = PhoneNumberField(region="VN", verbose_name="Số điện thoại")
+    phone_number = PhoneNumberField(region="VN", verbose_name="Số điện thoại")
     address = models.CharField(
         max_length=100, verbose_name="Địa chỉ", blank=True, null=True
     )
@@ -50,22 +46,19 @@ class Patients(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["citizen_id"]),
-            models.Index(fields=["full_name"]),
+            models.Index(fields=["fullname"]),
             models.Index(fields=["-created_at"]),
         ]
 
     def __str__(self):
-        return f"{self.full_name} - {self.citizen_id}"
-    
+        return f"{self.fullname} - {self.citizen_id}"
+
     @property
     def age(self):
         """Tính tuổi bệnh nhân"""
         today = date.today()
         return (
             today.year
-            - self.date_of_birth.year
-            - (
-                (today.month, today.day)
-                < (self.date_of_birth.month, self.date_of_birth.day)
-            )
+            - self.dob.year
+            - ((today.month, today.day) < (self.dob.month, self.dob.day))
         )

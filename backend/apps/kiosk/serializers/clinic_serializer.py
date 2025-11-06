@@ -4,8 +4,9 @@ Serializers cho Clinic model
 """
 
 from typing import Any
-from rest_framework import serializers
+
 from apps.kiosk.models import Clinic
+from rest_framework import serializers
 
 
 class ClinicSerializer(serializers.ModelSerializer):
@@ -56,10 +57,12 @@ class ClinicListSerializer(serializers.ModelSerializer):
     Chỉ trả về các fields cần thiết cho list view
     Giúp giảm dung lượng response
     """
+
     class Meta:
         model = Clinic
         # Chỉ lấy các fields quan trọng
         fields = ["name", "is_active", "address"]
+
 
 class ClinicCreateSerializer(serializers.ModelSerializer):
     """
@@ -122,7 +125,8 @@ class ClinicUpdateSerializer(serializers.ModelSerializer):
         # Lấy instance đang được update
         clinic = self.instance
         # Kiểm tra tên đã tồn tại chưa (loại trừ chính nó)
-        if Clinic.objects.exclude(pk=clinic.pk).filter(name__iexact=value).exists():
+        if clinic and Clinic.objects.exclude(pk=clinic.pk).filter(name__iexact=value).exists():  # type: ignore
             raise serializers.ValidationError("Tên phòng khám đã tồn tại")
 
+        return value
         return value

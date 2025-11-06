@@ -1,10 +1,10 @@
-
-from pydantic import ValidationError
 from apps.kiosk.models import Doctors
+from pydantic import ValidationError
+
 
 class DoctorService:
     @staticmethod
-    def get_doctor_by_id(doctor_id):
+    def get_doctor_by_id(doctor_id: int) -> Doctors:
         """
         Args:
             doctor_id (int): ID bác sĩ
@@ -17,17 +17,19 @@ class DoctorService:
             return Doctors.objects.get(id=doctor_id)
         except Doctors.DoesNotExist:
             raise ValidationError(f"Không tìm thấy bác sĩ với ID {doctor_id}")
-    
+
+    @staticmethod
     def get_list_doctor():
         """
         Lấy danh sách tất cả bác sĩ
         """
-        return Doctors.objects.all().order_by('full_name')
-    
-    def add_doctor(doctor_data):
+        return Doctors.objects.all().order_by("full_name")
+
+    @staticmethod
+    def add_doctor(doctor_data: dict):
         """
         Tạo mới một bác sĩ
-        
+
         Args:
             doctor_data (dict): Dữ liệu bác sĩ
         Returns:
@@ -35,11 +37,12 @@ class DoctorService:
         """
         doctor = Doctors.objects.create(**doctor_data)
         return doctor
-    
-    def update_doctor(doctor_id, update_data):
+
+    @staticmethod
+    def update_doctor(doctor_id: int, update_data: dict):
         """
         Cập nhật thông tin bác sĩ
-        
+
         Args:
             doctor_id (int): ID bác sĩ cần cập nhật
             update_data (dict): Dữ liệu cập nhật

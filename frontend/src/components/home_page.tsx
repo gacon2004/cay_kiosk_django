@@ -14,9 +14,9 @@ function HomePage() {
     const handleChange = (text: string) => {
         setLocalLoading(true);
         if (text === 'Khám Bảo Hiểm') {
-            setMode('Khám Bảo Hiểm');
+            setMode('insurance');
         } else {
-            setMode('Khám dịch vụ');
+            setMode('non-insurance');
         }
         setTimeout(()=>{
             setLocalLoading(false);

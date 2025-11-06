@@ -3,8 +3,8 @@ MODEL LAYER - Doctor Model
 Quản lý thông tin bác sĩ
 """
 
-from django.db import models
 from django.conf import settings
+from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -17,13 +17,13 @@ class Doctors(models.Model):
         verbose_name="Mã bác sĩ",
         help_text="Mã định danh bác sĩ",
     )
-    full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
+    fullname = models.CharField(max_length=100, verbose_name="Họ và tên")
     specialization = models.CharField(
         max_length=100,
         verbose_name="Chuyên khoa",
         help_text="Ví dụ: Tim mạch, Nội khoa, Ngoại khoa...",
     )
-    phone = PhoneNumberField(region="VN", verbose_name="Số điện thoại")
+    phone_number = PhoneNumberField(region="VN", verbose_name="Số điện thoại")
     email = models.EmailField(verbose_name="Email", unique=True)
     user_id = models.OneToOneField(
         settings.AUTH_USER_MODEL,  # ✅ Dùng settings thay vì get_user_model()
@@ -43,16 +43,16 @@ class Doctors(models.Model):
     class Meta:
         verbose_name = "Bác sĩ"
         verbose_name_plural = "Bác sĩ"
-        ordering = ["full_name"]
+        ordering = ["fullname"]
         indexes = [
             models.Index(fields=["doctor_id"]),
             models.Index(fields=["specialization"]),
         ]
 
     def __str__(self):
-        return f"BS. {self.full_name} - {self.specialization}"
+        return f"BS. {self.fullname} - {self.specialization}"
 
     @property
     def title(self):
         """Trả về danh xưng với tên"""
-        return f"BS. {self.full_name}"
+        return f"BS. {self.fullname}"

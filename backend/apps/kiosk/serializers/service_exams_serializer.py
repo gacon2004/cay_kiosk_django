@@ -1,6 +1,9 @@
 # Import serializers từ Django REST Framework để chuyển đổi dữ liệu
-from rest_framework import serializers
+from typing import Any
+
 from apps.kiosk.models import ServiceExam
+from rest_framework import serializers
+
 
 class ServiceExamsCreateSerializer(serializers.Serializer):
     """
@@ -13,7 +16,7 @@ class ServiceExamsCreateSerializer(serializers.Serializer):
     price_insurance = serializers.DecimalField(max_digits=10, decimal_places=2)
     price_non_insurance = serializers.DecimalField(max_digits=10, decimal_places=2)
 
-    def create(self, validated_data: dict[str, any]) -> ServiceExam:
+    def create(self, validated_data: dict[str, Any]) -> ServiceExam:
         """
         Tạo instance ServiceExam mới từ dữ liệu đã được xác thực
         Args:
@@ -27,28 +30,33 @@ class ServiceExamsCreateSerializer(serializers.Serializer):
             prices_insurance=validated_data["price_insurance"],
             prices_non_insurance=validated_data["price_non_insurance"],
         )
-        
+
+
 class ServiceExamsListSerializer(serializers.ModelSerializer):
     """
     Serializer rút gọn cho danh sách dịch vụ exams
     Chỉ trả về các fields cần thiết cho list view
     Giúp giảm dung lượng response
     """
+
     class Meta:
         model = ServiceExam
         # Chỉ lấy các fields quan trọng
         fields = ["name", "description", "prices_insurance", "prices_non_insurance"]
-        
+
+
 class ServiceExamsDetailSerializer(serializers.ModelSerializer):
     """
     Serializer chi tiết cho dịch vụ exams
     Trả về tất cả các fields của model ServiceExam
     Dùng cho detail view khi cần thông tin đầy đủ
     """
+
     class Meta:
         model = ServiceExam
         # Lấy tất cả các fields của model
         fields = "__all__"
+
 
 class ServiceExamsUpdateSerializer(serializers.ModelSerializer):
     """
@@ -59,4 +67,9 @@ class ServiceExamsUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceExam
         # Chỉ cho phép cập nhật các fields này
+        fields = [
+            "description",
+            "prices_insurance",
+            "prices_non_insurance",
+        ]  # Chỉ cho phép cập nhật các fields này
         fields = ["description", "prices_insurance", "prices_non_insurance"]

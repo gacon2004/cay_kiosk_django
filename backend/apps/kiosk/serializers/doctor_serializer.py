@@ -3,8 +3,8 @@ VIEW LAYER (Serializers) - Doctor Serializer
 Chuyển đổi Doctor model thành JSON và validate input
 """
 
-from rest_framework import serializers
 from apps.kiosk.models import Doctors
+from rest_framework import serializers
 
 
 class DoctorSerializer(serializers.ModelSerializer):
@@ -20,7 +20,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "doctor_id",
-            "full_name",
+            "fullname",
             "title",
             "specialization",
             "phone",
@@ -58,7 +58,7 @@ class DoctorListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "doctor_id",
-            "full_name",
+            "fullname",
             "title",
             "specialization",
             "phone",

@@ -3,9 +3,13 @@ VIEW LAYER (Serializers) - Custom User Serializer
 Serializers cho CustomUser model với đầy đủ fields bổ sung
 """
 
-from typing import Any
-from rest_framework import serializers
+from typing import TYPE_CHECKING, Any
+
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
+if TYPE_CHECKING:
+    from apps.kiosk.models import CustomUser
 
 # Lấy CustomUser model (đã config trong settings.AUTH_USER_MODEL)
 User = get_user_model()
@@ -66,7 +70,7 @@ class UserSerializer(serializers.ModelSerializer):
             "gender_display",
         ]
 
-    def get_full_name(self, obj: User) -> str:
+    def get_full_name(self, obj: "CustomUser") -> str:
         """Trả về họ tên đầy đủ"""
         return obj.full_name
 
@@ -97,7 +101,7 @@ class UserListSerializer(serializers.ModelSerializer):
             "is_staff",
         ]
 
-    def get_full_name(self, obj: User) -> str:
+    def get_full_name(self, obj: "CustomUser") -> str:
         return obj.full_name
 
 
@@ -192,24 +196,19 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "email",
             "first_name",
             "last_name",
-            
             # Contact info
             "phone",
             "address",
-            
             # Work info
             "role",
             "department",
             "employee_id",
-            
             # Personal info
             "avatar",
             "date_of_birth",
             "gender",
-            
             # Status
             "is_active",
-            
             # Additional
             "notes",
         ]
@@ -217,13 +216,17 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     def validate_email(self, value: str) -> str:
         """Validate email không bị trùng với user khác"""
         user = self.instance
-        if User.objects.exclude(pk=user.pk).filter(email=value).exists():
+        if user and User.objects.exclude(pk=user.pk).filter(email=value).exists():  # type: ignore
             raise serializers.ValidationError("Email đã được sử dụng")
         return value
-    
+
     def validate_employee_id(self, value: str) -> str:
         """Validate employee_id không bị trùng với user khác"""
         user = self.instance
-        if value and User.objects.exclude(pk=user.pk).filter(employee_id=value).exists():
+        if (
+            value
+            and user
+            and User.objects.exclude(pk=user.pk).filter(employee_id=value).exists()  # type: ignore
+        ):
             raise serializers.ValidationError("Mã nhân viên đã tồn tại")
         return value

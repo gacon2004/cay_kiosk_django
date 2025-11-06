@@ -3,17 +3,20 @@ SERVICE LAYER - Clinic Service
 Xử lý business logic liên quan đến phòng khám
 Tách biệt business logic khỏi views để dễ test và maintain
 """
-from typing import Optional, Dict, Any
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.db.models import Q, QuerySet
+
+from typing import Any, Dict, Optional
+
 from apps.kiosk.models import Clinic
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q, QuerySet
 
 
 class ClinicService:
     """
     Service class xử lý business logic cho phòng khám
     """
+
     @staticmethod
     def get_all_clinics(
         is_active: Optional[bool] = None, search: Optional[str] = None
@@ -69,9 +72,11 @@ class ClinicService:
             ValidationError: Nếu dữ liệu không hợp lệ
         """
         # Validate tên không trùng
-        name = clinic_data.get("name").strip()
-        if Clinic.objects.filter(name__iexact=name).exists():
-            raise ValidationError(f"Phòng khám '{name}' đã tồn tại")
+        name = clinic_data.get("name")
+        if name:
+            name = name.strip()
+            if Clinic.objects.filter(name__iexact=name).exists():
+                raise ValidationError(f"Phòng khám '{name}' đã tồn tại")
         # Tạo phòng khám
         clinic = Clinic.objects.create(**clinic_data)
         return clinic

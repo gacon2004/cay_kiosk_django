@@ -13,22 +13,23 @@ KHÔNG LÀM:
 - Direct database queries (để trong Service)
 - Complex validation (để trong Service)
 """
+
 import logging
 from typing import Any
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from django.core.exceptions import ValidationError
 
 from apps.kiosk.models import Clinic
 from apps.kiosk.serializers import (
-    ClinicSerializer,
-    ClinicListSerializer,
     ClinicCreateSerializer,
+    ClinicListSerializer,
+    ClinicSerializer,
     ClinicUpdateSerializer,
 )
 from apps.kiosk.services import ClinicService
+from django.core.exceptions import ValidationError
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 
 class ClinicViewSet(viewsets.ModelViewSet):
@@ -124,23 +125,18 @@ class ClinicViewSet(viewsets.ModelViewSet):
 
         # Serialize data
         # Type hint giúp IDE biết serializer type
-        serializer: ClinicListSerializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
 
         return Response({"count": queryset.count(), "results": serializer.data})
 
-    def create(self, request: dict[str, Any], *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         """
         POST /clinics/
         Tạo phòng khám mới
-        Body: {
-            "name": "Tên phòng khám",
-            "address": "Địa chỉ",
-            "is_active": true
-        }
         """
         # Validate request data với serializer
         # Type hint giúp IDE autocomplete validated_data, errors, data...
-        serializer: ClinicCreateSerializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         logging.info(f"Clinic create request data: {request.data}")
         serializer.is_valid(raise_exception=True)
 
@@ -153,7 +149,7 @@ class ClinicViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def retrieve(self, request: dict[str, Any], *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         """
         GET /clinics/{id}/
         Lấy chi tiết 1 phòng khám
@@ -162,7 +158,7 @@ class ClinicViewSet(viewsets.ModelViewSet):
             # GỌI SERVICE LAYER để lấy clinic
             clinic = ClinicService.get_clinic_by_id(self.kwargs["pk"])
             # Type hint giúp IDE autocomplete
-            serializer: ClinicSerializer = self.get_serializer(clinic)
+            serializer = self.get_serializer(clinic)
             return Response(serializer.data)
         except ValidationError as e:
             return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
@@ -177,7 +173,7 @@ class ClinicViewSet(viewsets.ModelViewSet):
 
         # Validate request data
         # Type hint giúp IDE autocomplete validated_data
-        serializer: ClinicUpdateSerializer = self.get_serializer(data=request.data, partial=partial)
+        serializer = self.get_serializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -198,7 +194,7 @@ class ClinicViewSet(viewsets.ModelViewSet):
         kwargs["partial"] = True
         return self.update(request, *args, **kwargs)
 
-    def destroy(self, request: dict[str, Any], *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         """
         DELETE /clinics/{id}/
         """
@@ -249,9 +245,14 @@ class ClinicViewSet(viewsets.ModelViewSet):
         Returns:
             Response: JSON với message và data đã update
         """
+        if pk is None:
+            return Response(
+                {"error": "Clinic ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             # GỌI SERVICE LAYER để activate clinic
-            clinic = ClinicService.activate_clinic(pk)
+            clinic = ClinicService.activate_clinic(int(pk))
 
             # Serialize data để trả về
             serializer = ClinicSerializer(clinic)
@@ -279,9 +280,14 @@ class ClinicViewSet(viewsets.ModelViewSet):
         Returns:
             Response: JSON với message và data đã update
         """
+        if pk is None:
+            return Response(
+                {"error": "Clinic ID is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             # GỌI SERVICE LAYER để deactivate clinic
-            clinic = ClinicService.deactivate_clinic(pk)
+            clinic = ClinicService.deactivate_clinic(int(pk))
             # Serialize data để trả về
             serializer = ClinicSerializer(clinic)
             return Response(

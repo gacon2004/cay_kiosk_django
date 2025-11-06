@@ -1,9 +1,34 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
+import { checkInsuranceByCitizenID } from "@/api/request";
 import { useGlobalContext } from "@/context/app_context";
 import { IdcardOutlined, LoadingOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { Button, Form, Input, message, Modal } from "antd";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+interface InsuranceDataResponse {
+    insurance_id: string;
+    citizen_id: string;
+    fullname: string;
+    gender: number;
+    dob: string;
+    phone_number: string;
+    registration_place: string;
+    valid_from: string;
+    expired: string
+    is_valid: string
+    days_until_expiry: number;
+}
+
+interface NoneInsuranceDataResponse {
+    // Định nghĩa các trường dữ liệu không bảo hiểm nếu cần
+    citizen_id: string;
+    fullname: string;
+    gender: string;
+    phone: string;
+}
 
 const InputCitizenID = () => {
     const [form] = Form.useForm();
@@ -12,27 +37,53 @@ const InputCitizenID = () => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
-    
+    const [error, setError] = useState(false);
+    const [insuranceData, setInsuranceData] = useState<InsuranceDataResponse | null>(null);
+
     const onFinish = async (values: { citizenId: string }) => {
+        const { citizenId } = values;
         setLoading(true);
+        setError(false);
+        setSuccess(false);
+
         try {
-            // TODO: Call API to check citizen ID
-            console.log('Citizen ID:', values.citizenId);
-            console.log('Mode:', mode);
+            if (mode === "insurance") {
+                const response = await checkInsuranceByCitizenID(citizenId);
+                console.log("✅ API Response:", response);
 
-            // Simulate API call
+                setInsuranceData(response.data);
+                setSuccess(true);
+                message.success("Đã tìm thấy thông tin bảo hiểm!");
+            } else {
+                const response = await checkInsuranceByCitizenID(citizenId);
+            }
 
-            setSuccess(true);
-            message.success('Đã tìm thấy thông tin bệnh nhân!');
+        } catch (error: any) {
+            setError(true);
 
-            // Navigate to next page after success
-            setTimeout(() => {
-                router.push('/thong-tin-benh-nhan');
-            }, 1000);
-
-        } catch (error) {
-            message.error('Không tìm thấy thông tin. Vui lòng kiểm tra lại!');
-            console.error(error);
+            // Axios error có cấu trúc riêng
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    // Server trả về lỗi HTTP (ví dụ: 404, 500)
+                    console.error("📡 API Error:", error.response.data);
+                    const errorMsg = error.response.data?.detail ||
+                        error.response.data?.message ||
+                        `Lỗi ${error.response.status}: Không tìm thấy thông tin.`;
+                    setErrorMessage(errorMsg);
+                } else if (error.request) {
+                    // Request gửi đi nhưng không nhận phản hồi
+                    console.error("No Response:", error.request);
+                    setErrorMessage("Không có phản hồi từ máy chủ!");
+                } else {
+                    // Lỗi khác (VD: cấu hình axios sai)
+                    console.error("Axios config error:", error.message);
+                    setErrorMessage("Lỗi cấu hình API!");
+                }
+            } else {
+                // Lỗi khác không phải từ axios
+                console.error("Unknown error:", error);
+                setErrorMessage("Đã xảy ra lỗi không xác định!");
+            }
         } finally {
             setLoading(false);
         }
@@ -55,16 +106,125 @@ const InputCitizenID = () => {
         <>
             {/* Loading Modal */}
             <Modal
-                open={loading || success}
+                open={loading || success || error}
                 footer={null}
                 closable={false}
                 centered
                 maskClosable={false}
                 styles={{ body: { textAlign: "center" } }}
             >
-                {loading && <LoadingOutlined spin style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />}
-                {success && <CheckCircleOutlined style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />}
-                <div className={`text-lg font-semibold ${loading ? 'text-emerald-600' : 'text-gray-600'}`}>{loading ? 'Đang kiểm tra thông tin...' : 'Thông tin đã được xác thực!'}</div>
+                {loading && (
+                    <>
+                        <LoadingOutlined spin style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />
+                        <div className="text-lg font-semibold text-emerald-600">Đang kiểm tra thông tin...</div>
+                    </>
+                )}
+
+                {success && mode === "insurance" && insuranceData ? (
+                    // mode insurance và có data
+                    <>
+                        <CheckCircleOutlined style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />
+                        <div className="text-lg font-semibold text-emerald-600 mb-4">Thông tin bảo hiểm y tế</div>
+
+                        <div className="text-left bg-gray-50 rounded-lg p-4 space-y-2">
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Số thẻ BHYT:</span>
+                                <span className="text-gray-900 font-semibold">{insuranceData.insurance_id}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Số CCCD:</span>
+                                <span className="text-gray-900 font-semibold">{insuranceData.citizen_id}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Họ và tên:</span>
+                                <span className="text-gray-900 font-semibold">{insuranceData.fullname}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Ngày sinh:</span>
+                                <span className="text-gray-900">{insuranceData.dob}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Giới tính:</span>
+                                <span className="text-gray-900">{insuranceData.gender === 1 ? "Nam" : "Nữ"}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Số điện thoại:</span>
+                                <span className="text-gray-900">{insuranceData.phone_number}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Ngày cấp:</span>
+                                <span className="text-gray-900">{insuranceData.valid_from}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Ngày hết hạn:</span>
+                                <span className="text-gray-900">{insuranceData.expired}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Nơi đăng ký KCB:</span>
+                                <span className="text-gray-900">{insuranceData.registration_place}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Trạng thái:</span>
+                                <span className="text-gray-900">{insuranceData.is_valid ? "Còn hiệu lực" : "Hết hiệu lực"}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Còn lại (ngày):</span>
+                                <span className="text-gray-900">{insuranceData.days_until_expiry}</span>
+                            </div>
+                        </div>
+
+                        <Button
+                            type="primary"
+                            className="mt-4 bg-emerald-600 w-full"
+                            onClick={() => {
+                                setSuccess(false);
+                                setInsuranceData(null);
+                                form.resetFields();
+                            }}
+                        >
+                            Bước tiếp theo
+                        </Button>
+                    </>
+                ) : (
+                    success && mode === "non-insurance" && (
+                        // mode non-insurance
+                        <>
+                            <CheckCircleOutlined style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />
+                            <div className="text-lg font-semibold text-emerald-600">Đã tìm thấy thông tin!</div>
+                            <Button
+                                type="primary"
+                                className="mt-4 bg-emerald-600 w-full"
+                                onClick={() => {
+                                    setSuccess(false);
+                                    setInsuranceData(null);
+                                    form.resetFields();
+                                }}
+                            >
+                                Bước tiếp theo
+                            </Button>
+                        </>
+                    )
+                )}
+
+                {error && (
+                    <>
+                        <IdcardOutlined style={{ fontSize: 48, color: "#ef4444" }} className="mb-3" />
+                        <div className="text-lg font-semibold text-red-600">Không tìm thấy thông tin!</div>
+                        {errorMessage && (
+                            <div className="text-sm text-gray-600 mt-2">{errorMessage}</div>
+                        )}
+                        <Button
+                            type="primary"
+                            className="mt-3 bg-emerald-600"
+                            onClick={() => {
+                                setError(false);
+                                setErrorMessage('');
+                            }}
+                        >
+                            Thử lại
+                        </Button>
+                    </>
+                )}
             </Modal>
 
             <div className="h-[80vh] bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">

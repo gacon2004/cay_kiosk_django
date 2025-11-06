@@ -4,21 +4,17 @@ Hệ thống quản lý thông tin bảo hiểm y tế (dữ liệu từ hệ th
 Người dùng kiểm tra xem bảo hiểm có tồn tại và còn hiệu lực không
 """
 
-from django.db import models
 from datetime import date
+
+from django.db import models
 
 
 class Insurance(models.Model):
     """
     Model bảo hiểm y tế - Dữ liệu từ hệ thống BHYT bên ngoài
-    Cấu trúc: citizen_id, insurance_id, fullname, gender, dob, phone_number, 
+    Cấu trúc: citizen_id, insurance_id, fullname, gender, dob, phone_number,
               registration_place, valid_from, expired
     """
-
-    GENDER_CHOICES = [
-        (1, "Nam"),
-        (0, "Nữ"),
-    ]
 
     # citizen_id - CCCD (Primary key)
     citizen_id = models.CharField(
@@ -43,10 +39,9 @@ class Insurance(models.Model):
     )
 
     # gender - Giới tính
-    gender = models.IntegerField(
-        choices=GENDER_CHOICES,
+    gender = models.BooleanField(
+        choices=[(1, "Nam"), (0, "Nữ")],
         verbose_name="Giới tính",
-        help_text="1=Nam, 0=Nữ",
     )
 
     # dob - Ngày sinh
@@ -146,4 +141,5 @@ class Insurance(models.Model):
         try:
             return cls.objects.get(insurance_id=insurance_id)
         except cls.DoesNotExist:
+            return None
             return None
