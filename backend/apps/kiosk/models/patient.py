@@ -14,8 +14,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 # python manage.py migrate         # Áp dụng vào database
 # Django sẽ đọc file này và tạo các bảng trong database theo đúng cấu trúc đã định nghĩa.
 class Patients(models.Model):
-    """Model bệnh nhân - Lưu trữ thông tin cá nhân bệnh nhân"""
-
     citizen_id = models.CharField(
         max_length=12,
         unique=True,

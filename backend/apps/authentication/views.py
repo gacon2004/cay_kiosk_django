@@ -158,7 +158,7 @@ class ForgotPasswordView(APIView):
 
     def post(self, request) -> Response:
         """
-        POST /auth/forgot-password/
+        POST /auth/forgot-password
         Gửi email reset mật khẩu
         """
         # Validate input qua DTO
@@ -184,11 +184,11 @@ class ResetPasswordView(APIView):
     Service: AuthenticationService.reset_password()
     """
 
-    # permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request) -> Response:
         """
-        POST /auth/reset-password/
+        POST /auth/reset-password
         Reset mật khẩu từ token
         """
         # Validate input qua DTO
@@ -222,7 +222,7 @@ class ProfileView(APIView):
 
     def get(self, request) -> Response:
         """
-        GET /auth/profile/
+        GET /auth/profile
         Lấy thông tin profile của user hiện tại
         """
         # Gọi service để lấy profile
@@ -231,7 +231,7 @@ class ProfileView(APIView):
 
     def put(self, request) -> Response:
         """
-        PUT /auth/profile/
+        PUT /auth/profile
         Cập nhật thông tin profile
         """
         # Validate input qua DTO
@@ -261,7 +261,7 @@ class ChangePasswordView(APIView):
 
     def post(self, request) -> Response:
         """
-        POST /auth/change-password/
+        POST /auth/change-password
         Đổi mật khẩu khi đã đăng nhập
         """
         # Validate input qua DTO
@@ -294,7 +294,7 @@ class LogoutView(APIView):
 
     def post(self, request) -> Response:
         """
-        POST /auth/logout/
+        POST /auth/logout
         Blacklist refresh token để đăng xuất
         """
         refresh_token = request.data.get("refresh_token")

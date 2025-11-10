@@ -34,3 +34,25 @@ export const register = async (formData: any) => {
         },
     });
 }
+
+export const logout = async (refresh_token: string, access_token: string) => {
+    return await axios.post(`${API_URL}/auth/logout`, { refresh_token }, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+        },
+    });
+}
+
+export const login = async (username: string, password: string) => {
+    return await axios.post(`${API_URL}/auth/login`, {
+        username: username,
+        password: password
+    },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }
+    );
+}

@@ -40,7 +40,7 @@ class Doctors(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
 
-    class Meta:
+    class Meta:  # tùy chỉnh
         verbose_name = "Bác sĩ"
         verbose_name_plural = "Bác sĩ"
         ordering = ["fullname"]

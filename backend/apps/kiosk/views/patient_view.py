@@ -208,14 +208,11 @@ class PatientViewSet(viewsets.ModelViewSet):
 
             # Kiểm tra bệnh nhân đã tồn tại chưa
             existing_patient = PatientService.find_patient_by_citizen_id(citizen_id)
-
             if existing_patient:
-                # Nếu đã có patient, trả về thông tin
-                serializer = PatientDetailSerializer(existing_patient)
+                # Nếu đã có patient, trả về thông tin bảo hiểm
                 return Response(
                     {
                         "message": "Bệnh nhân đã tồn tại trong hệ thống",
-                        "patient": serializer.data,
                         "insurance": InsuranceSerializer(insurance).data,
                         "has_patient": True,
                     }
@@ -237,13 +234,11 @@ class PatientViewSet(viewsets.ModelViewSet):
             PatientService.sync_patient_insurance_status(citizen_id)
 
             # Trả về response
-            patient_serializer = PatientDetailSerializer(patient)
             insurance_serializer = InsuranceSerializer(insurance)
 
             return Response(
                 {
                     "message": "Tạo hồ sơ bệnh nhân từ thẻ bảo hiểm thành công!",
-                    "patient": patient_serializer.data,
                     "insurance": insurance_serializer.data,
                     "has_patient": False,
                 },

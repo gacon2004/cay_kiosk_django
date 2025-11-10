@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { getServiceExams } from "@/api/request";
-import { saveSelectedService } from "@/utils/session";
+import { saveSelectedService, getAppMode } from "@/utils/session";
 import { useGlobalContext } from "@/context/app_context";
 import { 
     MedicineBoxOutlined, 
@@ -25,6 +25,7 @@ interface ServiceExam {
 const SelectService = () => {
     const router = useRouter();
     const { mode } = useGlobalContext();
+    const effectiveMode = mode || getAppMode();
     const [loading, setLoading] = useState(false);
     const [services, setServices] = useState<ServiceExam[]>([]);
     const [selectedService, setSelectedService] = useState<ServiceExam | null>(null);
@@ -57,8 +58,8 @@ const SelectService = () => {
     };
 
     const getPrice = (service: ServiceExam) => {
-        // Nếu mode là "insurance" thì dùng giá bảo hiểm, ngược lại dùng giá không bảo hiểm
-        return mode === 'insurance' ? service.prices_insurance : service.prices_non_insurance;
+        // Nếu effectiveMode là "insurance" thì dùng giá bảo hiểm, ngược lại dùng giá không bảo hiểm
+        return effectiveMode === 'insurance' ? service.prices_insurance : service.prices_non_insurance;
     };
 
     const formatPrice = (price: number) => {
@@ -129,9 +130,9 @@ const SelectService = () => {
                                     {formatPrice(getPrice(selectedService))}
                                 </span>
                             </div>
-                            {mode && (
+                            {effectiveMode && (
                                 <div className="text-xs text-gray-500 mt-2 text-center">
-                                    ({mode === 'insurance' ? 'Có bảo hiểm' : 'Không bảo hiểm'})
+                                    ({effectiveMode === 'insurance' ? 'Giá áp dụng có bảo hiểm' : 'Giá áp dụng không bảo hiểm'})
                                 </div>
                             )}
                         </div>
@@ -167,7 +168,7 @@ const SelectService = () => {
                             Chọn Dịch Vụ Khám
                         </h1>
                         <p className="text-base text-gray-600">
-                            {mode && <span className="font-semibold text-emerald-700">{mode === 'insurance' ? 'Có bảo hiểm' : 'Không bảo hiểm'}</span>}
+                            {effectiveMode && <span className="font-semibold text-emerald-700">{effectiveMode === 'insurance' ? 'Giá áp dụng có bảo hiểm' : 'Giá áp dụng không bảo hiểm'}</span>}
                         </p>
                     </div>
 

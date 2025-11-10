@@ -32,7 +32,7 @@ interface NoneInsuranceDataResponse {
     age: number;
     occupation: string;
     address: string;
-    is_insured: boolean;
+    is_insurance: boolean;
     ethnicity: string;
 }
 
@@ -49,6 +49,7 @@ const InputCitizenID = () => {
 
     const onFinish = async (values: { citizenId: string }) => {
         const { citizenId } = values;
+        console.log("🔍 Current mode:", mode);
         setLoading(true);
         setError(false);
         setSuccess(false);
@@ -57,17 +58,28 @@ const InputCitizenID = () => {
             if (mode === "insurance") {
                 const response = await checkInsuranceByCitizenID(citizenId);
                 console.log("✅ API Response:", response);
-
-                setInsuranceData(response.data);
-                setSuccess(true);
-                message.success("Đã tìm thấy thông tin bảo hiểm!");
+                
+                if (response.data) {
+                    setInsuranceData(response.data.insurance);
+                    setSuccess(true);
+                    console.log("🎉 Setting success=true, insuranceData:", response.data);
+                    message.success("Đã tìm thấy thông tin bảo hiểm!");
+                } else {
+                    setError(true);
+                    setErrorMessage("Không tìm thấy thông tin bảo hiểm!");
+                }
             } else {
                 const response = await getPatientByCitizenID(citizenId);
-                console.log("✅ API Response:", response);
-
-                setPatientData(response.data);
-                setSuccess(true);
-                message.success("Đã tìm thấy thông tin người khám!");
+                console.log("✅ Response Data:", response.data);
+                
+                if (response.data) {
+                    setPatientData(response.data);
+                    setSuccess(true);
+                    message.success("Đã tìm thấy thông tin người khám!");
+                } else {
+                    setError(true);
+                    setErrorMessage("Không tìm thấy thông tin người khám!");
+                }
             }
 
         } catch (error: any) {
@@ -132,8 +144,7 @@ const InputCitizenID = () => {
                     </>
                 )}
 
-                {success && mode === "insurance" && insuranceData ? (
-                    // mode insurance và có data
+                {success && insuranceData && (
                     <>
                         <CheckCircleOutlined style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />
                         <div className="text-lg font-semibold text-emerald-600 mb-4">Thông tin bảo hiểm y tế</div>
@@ -192,77 +203,78 @@ const InputCitizenID = () => {
                                 setSuccess(false);
                                 setInsuranceData(null);
                                 form.resetFields();
+                                router.push("/chon-dich-vu");
                             }}
                         >
                             Bước tiếp theo
                         </Button>
                     </>
-                ) : (
-                    success && mode === "non-insurance" && patientData && (
-                        // mode non-insurance
-                        <>
-                            <CheckCircleOutlined style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />
-                            <div className="text-lg font-semibold text-emerald-600 mb-4">Thông tin người khám</div>
+                )}
 
-                            <div className="text-left bg-gray-50 rounded-lg p-4 space-y-2">
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Số CCCD:</span>
-                                    <span className="text-gray-900 font-semibold">{patientData.citizen_id}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Họ và tên:</span>
-                                    <span className="text-gray-900 font-semibold">{patientData.fullname}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Ngày sinh:</span>
-                                    <span className="text-gray-900">{patientData.dob}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Giới tính:</span>
-                                    <span className="text-gray-900">{patientData.gender === true ? "Nam" : "Nữ"}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Số điện thoại:</span>
-                                    <span className="text-gray-900">{patientData.phone_number}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Ngày sinh:</span>
-                                    <span className="text-gray-900">{patientData.dob}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Tuổi:</span>
-                                    <span className="text-gray-900">{patientData.age}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Nghề nghiệp:</span>
-                                    <span className="text-gray-900">{patientData.occupation}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Địa chỉ:</span>
-                                    <span className="text-gray-900">{patientData.address}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Bảo hiểm y tế:</span>
-                                    <span className="text-gray-900">{patientData.is_insured ? "Có" : "Không"}</span>
-                                </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600 font-medium">Dân tộc:</span>
-                                    <span className="text-gray-900">{patientData.ethnicity}</span>
-                                </div>
+                {success && patientData && (
+                    <>
+                        <CheckCircleOutlined style={{ fontSize: 48, color: "#10b981" }} className="mb-3" />
+                        <div className="text-lg font-semibold text-emerald-600 mb-4">Thông tin người khám</div>
+
+                        <div className="text-left bg-gray-50 rounded-lg p-4 space-y-2">
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Số CCCD:</span>
+                                <span className="text-gray-900 font-semibold">{patientData.citizen_id}</span>
                             </div>
-                            <Button
-                                type="primary"
-                                className="mt-4 bg-emerald-600 w-full"
-                                onClick={() => {
-                                    setSuccess(false);
-                                    setPatientData(null);
-                                    form.resetFields();
-                                }}
-                            >
-                                Bước tiếp theo
-                            </Button>
-                        </>
-                    )
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Họ và tên:</span>
+                                <span className="text-gray-900 font-semibold">{patientData.fullname}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Ngày sinh:</span>
+                                <span className="text-gray-900">{patientData.dob}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Giới tính:</span>
+                                <span className="text-gray-900">{patientData.gender === true ? "Nam" : "Nữ"}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Số điện thoại:</span>
+                                <span className="text-gray-900">{patientData.phone_number}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Tuổi:</span>
+                                <span className="text-gray-900">{patientData.age}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Nghề nghiệp:</span>
+                                <span className="text-gray-900">{patientData.occupation}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Địa chỉ:</span>
+                                <span className="text-gray-900">{patientData.address}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Bảo hiểm y tế:</span>
+                                <span className="text-gray-900">{patientData.is_insurance ? "Có" : "Không"}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Sử dụng bảo hiểm y tế:</span>
+                                <span className="text-gray-900">{"Không"}</span>
+                            </div>
+                            <div className="flex justify-between border-b pb-2">
+                                <span className="text-gray-600 font-medium">Dân tộc:</span>
+                                <span className="text-gray-900">{patientData.ethnicity}</span>
+                            </div>
+                        </div>
+                        <Button
+                            type="primary"
+                            className="mt-4 bg-emerald-600 w-full"
+                            onClick={() => {
+                                setSuccess(false);
+                                setPatientData(null);
+                                form.resetFields();
+                                router.push("/chon-dich-vu");
+                            }}
+                        >
+                            Bước tiếp theo
+                        </Button>
+                    </>
                 )}
 
                 {error && (
@@ -276,6 +288,7 @@ const InputCitizenID = () => {
                             type="primary"
                             className="mt-3 bg-emerald-600"
                             onClick={() => {
+                                router.push("/chon-dich-vu");
                                 setError(false);
                                 setErrorMessage('');
                             }}

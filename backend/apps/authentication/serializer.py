@@ -217,9 +217,9 @@ class ResetPasswordSerializer(serializers.Serializer):
 
             if not uid:
                 raise ValueError("UID is required")
-            user_id: str = force_str(
-                urlsafe_base64_decode(uid)
-            )  # Decode UID thành user_id
+            uid_str = force_str(urlsafe_base64_decode(uid))  # Decode UID thành string
+            print("Decoded UID:", uid_str)
+            user_id = int(uid_str)  # Convert thành int
             user: User = User.objects.get(pk=user_id)  # Lấy user từ database
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             raise serializers.ValidationError({"token": ["Token không hợp lệ."]})
@@ -237,6 +237,7 @@ class ResetPasswordSerializer(serializers.Serializer):
             )
 
         attrs["user"] = user  # Thêm user vào validated data
+        print("Validated user:", user)
         return attrs
 
     def save(self) -> User:

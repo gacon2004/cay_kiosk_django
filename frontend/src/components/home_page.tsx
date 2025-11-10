@@ -4,7 +4,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { Modal } from "antd";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { clearSessionData } from "@/utils/session";
+import { clearSessionData, saveAppMode } from "@/utils/session";
 
 
 function HomePage() {
@@ -17,16 +17,19 @@ function HomePage() {
     useEffect(() => {
         clearSessionData();
         setMode(''); // Reset mode in context
-    }, [setMode]);
+    }, []);
 
     const handleChange = (text: string) => {
         setLocalLoading(true);
+        let mode = '';
         if (text === 'Khám Bảo Hiểm') {
-            setMode('insurance');
+            mode = 'insurance';
         } else {
-            setMode('non-insurance');
+            mode = 'non-insurance';
         }
-        setTimeout(()=>{
+        setMode(mode);
+        saveAppMode(mode);
+        setTimeout(() => {
             setLocalLoading(false);
             router.push('/nhap-cccd')
         }, 1000);

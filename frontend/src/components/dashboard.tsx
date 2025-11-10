@@ -7,9 +7,11 @@ import {
     HistoryOutlined,
     UserOutlined,
     LogoutOutlined,
+    LoadingOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Menu, theme, Typography, Card, Row, Col, Statistic } from 'antd';
+import { Button, Layout, Menu, theme, Typography, Card, Row, Col, Statistic, Modal } from 'antd';
 import { useRouter } from 'next/navigation';
+import { logout } from '@/api/request';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -17,6 +19,9 @@ const { Title } = Typography;
 const Dashboard: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [selectedKey, setSelectedKey] = useState('1');
+    const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [confirmLogoutVisible, setConfirmLogoutVisible] = useState(false);
     const router = useRouter();
 
     const {
@@ -39,17 +44,29 @@ const Dashboard: React.FC = () => {
                 router.push('/profile');
                 break;
             case '4':
-                // Đăng xuất
-                handleLogout();
+                // Đăng xuất - hiện modal xác nhận
+                setConfirmLogoutVisible(true);
                 break;
         }
     };
 
-    const handleLogout = () => {
-        // Clear tokens and redirect to login
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        router.push('/login');
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        const refresh_token = localStorage.getItem('refresh_token');
+        const access_token = localStorage.getItem('access_token');
+        if (refresh_token && access_token) {
+
+            await logout(refresh_token, access_token);
+        }
+        setTimeout(() => {
+            // Clear tokens
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+
+            setIsLoggingOut(false);
+            // Show success modal
+            setLogoutModalVisible(true);
+        }, 1000)
     };
 
     const menuItems = [
@@ -224,6 +241,54 @@ const Dashboard: React.FC = () => {
                     {renderContent()}
                 </Content>
             </Layout>
+
+            {/* Confirm Logout Modal */}
+            <Modal
+                open={confirmLogoutVisible}
+                title="Xác nhận đăng xuất"
+                onCancel={() => setConfirmLogoutVisible(false)}
+                footer={[
+                    <Button key="cancel" onClick={() => setConfirmLogoutVisible(false)}>
+                        Hủy
+                    </Button>,
+                    <Button key="confirm" type="primary" danger onClick={() => {
+                        setConfirmLogoutVisible(false);
+                        handleLogout();
+                    }}>
+                        Đăng xuất
+                    </Button>,
+                ]}
+                centered
+            >
+                <p>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+            </Modal>
+
+            {/* Logout Loading Modal */}
+            <Modal
+                open={isLoggingOut}
+                footer={null}
+                closable={false}
+                centered
+                styles={{ body: { textAlign: "center" } }}
+            >
+                <LoadingOutlined spin style={{ fontSize: 48, color: "#2563eb" }} className="mb-3" />
+                <div className="text-lg font-semibold">Đang đăng xuất...</div>
+            </Modal>
+
+            {/* Logout Success Modal */}
+            <Modal
+                open={logoutModalVisible}
+                title="Đăng xuất thành công"
+                onCancel={() => setLogoutModalVisible(false)}
+                footer={[
+                    <Button key="ok" type="primary" onClick={() => router.push('/login')}>
+                        OK
+                    </Button>,
+                ]}
+                centered
+            >
+                <p>Bạn đã đăng xuất thành công khỏi hệ thống.</p>
+            </Modal>
         </Layout>
     );
 };

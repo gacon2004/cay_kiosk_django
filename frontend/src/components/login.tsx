@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { login } from '@/api/request';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -50,11 +51,7 @@ const Login: React.FC = () => {
 
         try {
             // Gọi API login
-            const response = await axios.post(`${API_URL}/auth/login`, {
-                username: formData.username,
-                password: formData.password
-            });
-
+            const response  = await login(formData.username, formData.password);
             // Success - lưu tokens và chuyển hướng
             const { access, refresh } = response.data;
 
