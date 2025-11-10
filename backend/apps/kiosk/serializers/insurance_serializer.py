@@ -66,15 +66,6 @@ class InsuranceSerializer(serializers.ModelSerializer):
         return phone_number
 
     def validate_insurance_id(self, insurance_id: str) -> str:
-        """
-        Validate số thẻ BHYT
-        Args:
-            insurance_id: Số thẻ BHYT cần validate
-        Returns:
-            str: Số thẻ BHYT đã uppercase
-        Raises:
-            ValidationError: Nếu số thẻ không hợp lệ
-        """
         # Số thẻ BHYT thường có format: XX1234567890123 (15 ký tự)
         if len(insurance_id) < 10:
             raise serializers.ValidationError("Số thẻ BHYT không hợp lệ")

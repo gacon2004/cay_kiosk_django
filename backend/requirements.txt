@@ -8,6 +8,7 @@ Pillow==11.0.0
 python-decouple==3.8
 django-phonenumber-field==8.1.0
 pydantic==2.10.3
+python-dotenv==1.0.1
 
 # Type stubs for better IDE autocomplete
 djangorestframework-stubs>=3.15.0

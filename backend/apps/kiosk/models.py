@@ -5,19 +5,13 @@ File này chỉ để backward compatibility
 """
 
 # Import từ cấu trúc MVC mới
-from .models import (
-    ServiceExam,
-    Patients,
-    Insurance,
-    Doctors,
-    Clinic
-)
-
+from .models import Clinic, CustomUser, Doctors, Insurance, Patients, ServiceExam
 
 __all__ = [
-    'ServiceExam',
-    'Patients',
-    'Insurance', 
-    'Doctors',
-    'Clinic',
+    "ServiceExam",
+    "Patients",
+    "Insurance",
+    "Doctors",
+    "Clinic",
+    "CustomUser",
 ]

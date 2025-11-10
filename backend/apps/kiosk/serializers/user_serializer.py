@@ -46,7 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
             "employee_id",
             # Personal info
             "avatar",
-            "date_of_birth",
+            "dob",
             "gender",
             "gender_display",  # Human-readable gender
             # Status & metadata
@@ -133,7 +133,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "department",
             "employee_id",
             # Personal info
-            "date_of_birth",
+            "dob",
             "gender",
             # Additional
             "notes",
@@ -205,7 +205,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "employee_id",
             # Personal info
             "avatar",
-            "date_of_birth",
+            "dob",
             "gender",
             # Status
             "is_active",

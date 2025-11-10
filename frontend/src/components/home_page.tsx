@@ -2,8 +2,9 @@
 import { useGlobalContext } from "@/context/app_context";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Modal } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { clearSessionData } from "@/utils/session";
 
 
 function HomePage() {
@@ -11,6 +12,13 @@ function HomePage() {
     const { setMode } = useGlobalContext()
     const button = ['Khám Bảo Hiểm', 'Khám dịch vụ'];
     const router = useRouter();
+
+    // Clear session data when component mounts
+    useEffect(() => {
+        clearSessionData();
+        setMode(''); // Reset mode in context
+    }, [setMode]);
+
     const handleChange = (text: string) => {
         setLocalLoading(true);
         if (text === 'Khám Bảo Hiểm') {

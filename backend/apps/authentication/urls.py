@@ -1,23 +1,28 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
+
 from .views import (
-    RegisterView,
-    LoginView,
-    ProfileView,
+    AuthAPIRootView,
     ChangePasswordView,
-    LogoutView
+    CustomTokenRefreshView,
+    ForgotPasswordView,
+    LoginView,
+    LogoutView,
+    ProfileView,
+    ResetPasswordView,
 )
 
-app_name = 'authentication'
+app_name = "authentication"
 
 urlpatterns = [
+    # API root endpoint
+    path("", AuthAPIRootView.as_view(), name="api-root"),
     # Authentication endpoints
-    path('register', RegisterView.as_view(), name='register'),
-    path('login', LoginView.as_view(), name='login'),
-    path('logout', LogoutView.as_view(), name='logout'),
-    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
-    
+    path("/login", LoginView.as_view(), name="login"),
+    path("/forgot-password", ForgotPasswordView.as_view(), name="forgot_password"),
+    path("/reset-password", ResetPasswordView.as_view(), name="reset_password"),
+    path("/logout", LogoutView.as_view(), name="logout"),
+    path("/refresh", CustomTokenRefreshView.as_view(), name="token_refresh"),
     # Profile endpoints
-    path('profile', ProfileView.as_view(), name='profile'),
-    path('change-password', ChangePasswordView.as_view(), name='change_password'),
+    path("/profile", ProfileView.as_view(), name="profile"),
+    path("/change-password", ChangePasswordView.as_view(), name="change_password"),
 ]

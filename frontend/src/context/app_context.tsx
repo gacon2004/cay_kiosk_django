@@ -20,7 +20,20 @@ export const useGlobalContext = () => {
 
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-    const [mode, setMode] = useState<string>('')
+    const [mode, setModeState] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('app_mode') || ''
+        }
+        return ''
+    })
+
+    const setMode = (newMode: string) => {
+        setModeState(newMode)
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('app_mode', newMode)
+        }
+    }
+
     return (
         <AppContext.Provider value={{ mode, setMode }}>
             {children}

@@ -40,18 +40,18 @@ class PatientSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("CCCD phải 12 số")
         return citizen_id
 
-    def validate_date_of_birth(self, date_of_birth: date) -> date:
+    def validate_dob(self, dob: date) -> date:
         """Validate ngày sinh"""
-        if date_of_birth > date.today():
+        if dob > date.today():
             raise serializers.ValidationError(
                 "Ngày sinh không thể lớn hơn ngày hiện tại"
             )
 
-        age = date.today().year - date_of_birth.year
+        age = date.today().year - dob.year
         if age > 150:
             raise serializers.ValidationError("Tuổi không hợp lệ")
 
-        return date_of_birth
+        return dob
 
 
 class PatientListSerializer(serializers.ModelSerializer):

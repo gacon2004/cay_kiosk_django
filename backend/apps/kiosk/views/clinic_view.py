@@ -28,7 +28,7 @@ from apps.kiosk.services import ClinicService
 from django.core.exceptions import ValidationError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 
@@ -58,27 +58,35 @@ class ClinicViewSet(viewsets.ModelViewSet):
     queryset = Clinic.objects.all().order_by("name")
 
     # permission_classes: Danh sách permission classes
-    # AllowAny = Cho phép tất cả (không cần authentication)
-    # CẢNH BÁO: Chỉ dùng AllowAny trong development/testing!
-    # Production nên dùng: IsAuthenticated, IsAdminUser, hoặc custom permission
-    permission_classes = [AllowAny]
+    # IsAuthenticated = Chỉ user đã đăng nhập mới được truy cập
+    # PRODUCTION READY: Phân quyền theo role và action
+    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
         """
         Override method get_permissions() để customize permission cho từng action
 
-        Ví dụ phân quyền thực tế (UNCOMMENT khi production):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]  # Chỉ admin mới được tạo/sửa/xóa
-        elif self.action in ['activate', 'deactivate']:
-            return [IsAdminUser()]  # Chỉ admin mới activate/deactivate
-        return [IsAuthenticated()]  # Các action khác cần đăng nhập
+        LOGIC PHÂN QUYỀN:
+        - Read operations (list, retrieve, active): IsAuthenticated (user đã login)
+        - Write operations (create, update, partial_update, destroy): IsAdminUser (chỉ admin)
+        - Special actions (activate, deactivate): IsAdminUser (chỉ admin)
 
         Returns:
             list: Danh sách permission instances
         """
-        # Tạm thời return AllowAny() cho tất cả actions (để test)
-        return [AllowAny()]
+        # Admin only actions (CUD + activate/deactivate)
+        if self.action in [
+            "create",
+            "update",
+            "partial_update",
+            "destroy",
+            "activate",
+            "deactivate",
+        ]:
+            return [IsAuthenticated(), IsAdminUser()]
+
+        # Authenticated user actions (Read operations)
+        return [IsAuthenticated()]
 
     def get_serializer_class(self):
         """
@@ -132,7 +140,6 @@ class ClinicViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """
         POST /clinics/
-        Tạo phòng khám mới
         """
         # Validate request data với serializer
         # Type hint giúp IDE autocomplete validated_data, errors, data...
@@ -152,7 +159,6 @@ class ClinicViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """
         GET /clinics/{id}/
-        Lấy chi tiết 1 phòng khám
         """
         try:
             # GỌI SERVICE LAYER để lấy clinic

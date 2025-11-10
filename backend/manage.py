@@ -3,6 +3,11 @@
 import os
 import sys
 
+# Load environment variables BEFORE Django setup
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Sử dụng PyMySQL thay vì mysqlclient
 try:
     import pymysql

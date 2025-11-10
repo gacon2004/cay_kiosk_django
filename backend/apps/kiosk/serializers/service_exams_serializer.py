@@ -19,10 +19,6 @@ class ServiceExamsCreateSerializer(serializers.Serializer):
     def create(self, validated_data: dict[str, Any]) -> ServiceExam:
         """
         Tạo instance ServiceExam mới từ dữ liệu đã được xác thực
-        Args:
-            validated_data: Dữ liệu đã được xác thực từ client
-        Returns:
-            ServiceExam: Instance dịch vụ exams vừa tạo
         """
         return ServiceExam.objects.create(
             name=validated_data["service_name"],
@@ -42,14 +38,20 @@ class ServiceExamsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceExam
         # Chỉ lấy các fields quan trọng
-        fields = ["name", "description", "prices_insurance", "prices_non_insurance"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "prices_insurance",
+            "prices_non_insurance",
+            "is_active",
+        ]
 
 
 class ServiceExamsDetailSerializer(serializers.ModelSerializer):
     """
     Serializer chi tiết cho dịch vụ exams
     Trả về tất cả các fields của model ServiceExam
-    Dùng cho detail view khi cần thông tin đầy đủ
     """
 
     class Meta:

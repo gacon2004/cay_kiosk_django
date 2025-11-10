@@ -1,51 +1,43 @@
 ﻿'use client';
 import { Col, Row, Select, Spin } from "antd";
 import { useState, useEffect } from "react";
-
-interface Ward {
-    name: string;
-    mergedFrom?: string[];
-}
-
-interface ProvinceData {
-    id: string;
-    province: string;
-    licensePlates: string[];
-    wards: Ward[];
-}
-
-interface ApiResponseList {
-    success: boolean;
-    data: ProvinceData[];
-}
-
-interface ApiResponseSingle {
-    success: boolean;
-    data: ProvinceData;
-    timestamp?: string;
-}
+import type { Province, Ward } from "@/api/provinces/request";
+import { getProvinces, getProvinceDetail } from "@/api/provinces/request";
 
 interface ProvincesProps {
+    value?: { province: Province | null; ward: Ward | null };
+    onChange?: (value: { province: Province | null; ward: Ward | null }) => void;
     onSelect?: (address: string) => void;
 }
 
-const Provinces = ({ onSelect }: ProvincesProps) => {
-    const [provinces, setProvinces] = useState<string[]>([]);
+const Provinces = ({ value, onChange, onSelect }: ProvincesProps) => {
+    const [provinces, setProvinces] = useState<Province[]>([]);
     const [wards, setWards] = useState<Ward[]>([]);
-    const [selectedProvince, setSelectedProvince] = useState('');
-    const [selectedWard, setSelectedWard] = useState('');
+    const [selectedProvince, setSelectedProvince] = useState<Province | null>(value?.province || null);
+    const [selectedWard, setSelectedWard] = useState<Ward | null>(value?.ward || null);
     const [loadingProvinces, setLoadingProvinces] = useState(false);
     const [loadingWards, setLoadingWards] = useState(false);
+
+    // Sync with external value
+    useEffect(() => {
+        setSelectedProvince(value?.province || null);
+        setSelectedWard(value?.ward || null);
+    }, [value]);
+
+    // Update external value when internal state changes
+    useEffect(() => {
+        onChange?.({ 
+            province: selectedProvince, 
+            ward: selectedWard 
+        });
+    }, [selectedProvince, selectedWard, onChange]);
 
     useEffect(() => {
         const fetchProvinces = async () => {
             setLoadingProvinces(true);
             try {
-                const response = await fetch('/api/provinces');
-                const result: ApiResponseList = await response.json();
-                if (result.success && result.data.length > 0) {
-                    setProvinces(result.data.map(item => item.province));
-                }
+                const data = await getProvinces();
+                setProvinces(data);
             } catch (error) {
                 console.error('Error fetching provinces:', error);
             } finally {
@@ -60,15 +52,8 @@ const Provinces = ({ onSelect }: ProvincesProps) => {
             if (selectedProvince) {
                 setLoadingWards(true);
                 try {
-                    const response = await fetch(`/api/provinces?province=${encodeURIComponent(selectedProvince)}`);
-                    const result: ApiResponseSingle = await response.json();
-                    
-                    // API trả về object, không phải array
-                    if (result.success && result.data) {
-                        setWards(result.data.wards || []);
-                    } else {
-                        setWards([]);
-                    }
+                    const detail = await getProvinceDetail(selectedProvince.code);
+                    setWards(detail.wards || []);
                 } catch (error) {
                     console.error("Error fetching wards:", error);
                     setWards([]);
@@ -84,7 +69,7 @@ const Provinces = ({ onSelect }: ProvincesProps) => {
 
     useEffect(() => {
         if (selectedProvince && selectedWard) {
-            onSelect?.(`${selectedWard}, ${selectedProvince}`);
+            onSelect?.(`${selectedWard.name}, ${selectedProvince.name}`);
         }
     }, [selectedProvince, selectedWard, onSelect]);
 
@@ -95,9 +80,13 @@ const Provinces = ({ onSelect }: ProvincesProps) => {
                     placeholder="Chọn tỉnh/thành phố"
                     allowClear
                     showSearch
-                    value={selectedProvince || undefined}
-                    onChange={(v) => { setSelectedProvince(v || ''); setSelectedWard(''); }}
-                    options={provinces.map(p => ({ label: p, value: p }))}
+                    value={selectedProvince?.code}
+                    onChange={(v) => {
+                        const p = provinces.find(p => p.code === v);
+                        setSelectedProvince(p || null);
+                        setSelectedWard(null);
+                    }}
+                    options={provinces.map(p => ({ label: p.name, value: p.code }))}
                     loading={loadingProvinces}
                     notFoundContent={loadingProvinces ? <Spin size="small" /> : 'Không có dữ liệu'}
                     className="w-full"
@@ -108,9 +97,9 @@ const Provinces = ({ onSelect }: ProvincesProps) => {
                     placeholder="Chọn phường/xã"
                     allowClear
                     showSearch
-                    value={selectedWard || undefined}
-                    onChange={(v) => setSelectedWard(v || '')}
-                    options={wards.map((w, i) => ({ label: w.name, value: w.name, key: i }))}
+                    value={selectedWard?.code}
+                    onChange={(v) => setSelectedWard(wards.find(w => w.code === v) || null)}
+                    options={wards.map((w) => ({ label: w.name, value: w.code, key: w.code }))}
                     disabled={!selectedProvince}
                     loading={loadingWards}
                     notFoundContent={loadingWards ? <Spin size="small" /> : 'Không có dữ liệu'}

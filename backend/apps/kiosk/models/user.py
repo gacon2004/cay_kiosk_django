@@ -114,6 +114,7 @@ class CustomUser(AbstractUser):
     )
 
     class Meta:
+        app_label = "kiosk"  # Explicitly set app_label
         db_table = "custom_users"
         verbose_name = "Người dùng"
         verbose_name_plural = "Người dùng"
