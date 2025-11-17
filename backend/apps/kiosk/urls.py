@@ -22,6 +22,7 @@ from apps.kiosk.views import (
     ClinicViewSet,
     ServiceExamViewSet
 )
+from kiosk.views.order_view import OrderViewSet
 
 # Namespace cho app (dùng trong reverse URL: 'kiosk:user-list')
 app_name = 'kiosk'
@@ -50,7 +51,7 @@ router.register(r'/insurance', InsuranceViewSet, basename='insurance')
 router.register(r'/doctors', DoctorViewSet, basename='doctor')
 router.register(r'/clinics', ClinicViewSet, basename='clinic')
 router.register(r'/service-exams', ServiceExamViewSet, basename='service-exam')
-
+router.register(r'/orders', OrderViewSet, basename='order')
 # ===== URL PATTERNS =====
 urlpatterns = [
     # Include tất cả routes từ router

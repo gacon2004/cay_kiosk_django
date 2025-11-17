@@ -31,7 +31,7 @@ ROOT_URLCONF = "config.urls"
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-g6n&uq9349isi$lqj0*k0!j%$6@02np!((ablurp6x_%jcg9#g"
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -229,7 +229,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,  # Blacklist token cũ
     "UPDATE_LAST_LOGIN": True,  # Cập nhật last_login
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
+    "SIGNING_KEY": os.getenv("SECRET_KEY"),
     "VERIFYING_KEY": None,
     "AUDIENCE": None,
     "ISSUER": None,

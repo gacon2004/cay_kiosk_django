@@ -1,0 +1,3 @@
+self.kwargs là một thuộc tính của instance ViewSet (trong DRF), là một dictionary chứa các tham số được capture từ URL pattern.
+Ví dụ: Với URL /clinics/123/activate/, self.kwargs sẽ là {'pk': '123'} (vì pk là tên tham số trong URL pattern).
+Nó không "chỉ tới class", mà là thuộc tính của instance hiện tại (self), chứa các giá trị từ URL. Các tham số này được DRF tự động populate dựa trên URL routing.
