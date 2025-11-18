@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "debug_toolbar",
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # THÊM CORS (đặt trước CommonMiddleware)
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",  # THÊM DEBUG TOOLBAR
     # 'django.middleware.csrf.CsrfViewMiddleware',  # TẠM TẮT CSRF để test API
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -221,7 +223,7 @@ REST_FRAMEWORK = {
 
 # JWT SETTINGS
 from datetime import timedelta
-
+SECRET_KEY = os.getenv("SECRET_KEY")
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),  # Token hết hạn sau 1 giờ
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Refresh token hết hạn sau 7 ngày
@@ -229,7 +231,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,  # Blacklist token cũ
     "UPDATE_LAST_LOGIN": True,  # Cập nhật last_login
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": os.getenv("SECRET_KEY"),
+    "SIGNING_KEY": SECRET_KEY,
     "VERIFYING_KEY": None,
     "AUDIENCE": None,
     "ISSUER": None,
@@ -254,12 +256,18 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # CORS SETTINGS
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React Dev Server
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",  # Django server
-    "http://127.0.0.1:8000",
-]
+# Web app dùng session/cookie:
+# → NÊN bật CSRF để bảo vệ form khỏi bị tấn công.
+# REST API dùng JWT/token:
+# → THƯỜNG TẮT CSRF cho các endpoint API (vì đã bảo vệ bằng token).
+# Tuyệt đối KHÔNG tắt CSRF cho các view dùng session/cookie (form web truyền thống).
+# chỉ có server rendering HTML mới cần CSRF, API dùng token thì không cần.
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "http://localhost:8000",
+#     "http://127.0.0.1:8000",
+# ]
 
 CORS_ALLOW_CREDENTIALS = True
 

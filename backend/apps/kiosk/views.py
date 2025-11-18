@@ -987,18 +987,18 @@ class ServiceExamViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     """
     Xử lý CRUD operations cho User:
-    - GET /api/users/ - Lấy danh sách users
-    - POST /api/users/ - Tạo user mới (chỉ admin)
-    - GET /api/users/{id}/ - Xem chi tiết user
-    - PUT /api/users/{id}/ - Cập nhật user (toàn bộ)
-    - PATCH /api/users/{id}/ - Cập nhật user (một phần)
-    - DELETE /api/users/{id}/ - Xóa user (chỉ admin)
+    - GET /api/users - Lấy danh sách users
+    - POST /api/users - Tạo user mới (chỉ admin)
+    - GET /api/users/{id} - Xem chi tiết user
+    - PUT /api/users/{id} - Cập nhật user (toàn bộ)
+    - PATCH /api/users/{id} - Cập nhật user (một phần)
+    - DELETE /api/users/{id} - Xóa user (chỉ admin)
     
     Custom actions:
-    - GET /api/users/me/ - Lấy thông tin user hiện tại
-    - GET /api/users/active/ - Lấy danh sách users active
-    - POST /api/users/{id}/activate/ - Kích hoạt user
-    - POST /api/users/{id}/deactivate/ - Vô hiệu hóa user
+    - GET /api/users/me - Lấy thông tin user hiện tại
+    - GET /api/users/active - Lấy danh sách users active
+    - POST /api/users/{id}/activate - Kích hoạt user
+    - POST /api/users/{id}/deactivate - Vô hiệu hóa user
     """
     
     queryset = CustomUser.objects.all()
@@ -1069,7 +1069,7 @@ class UserViewSet(viewsets.ModelViewSet):
         POST /api/users/{id}/activate
         Kích hoạt user
         """
-        user = self.get_object()
+        user: CustomUser = self.get_object()
         user.is_active = True
         user.save()
         

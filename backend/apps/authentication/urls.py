@@ -1,7 +1,6 @@
 from django.urls import path
 
 from .views import (
-    AuthAPIRootView,
     ChangePasswordView,
     CustomTokenRefreshView,
     ForgotPasswordView,
@@ -14,8 +13,6 @@ from .views import (
 app_name = "authentication"
 
 urlpatterns = [
-    # API root endpoint
-    path("", AuthAPIRootView.as_view(), name="api-root"),
     # Authentication endpoints
     path("/login", LoginView.as_view(), name="login"),
     path("/forgot-password", ForgotPasswordView.as_view(), name="forgot_password"),

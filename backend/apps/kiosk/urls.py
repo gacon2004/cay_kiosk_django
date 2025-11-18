@@ -19,10 +19,10 @@ from apps.kiosk.views import (
     PatientViewSet,
     InsuranceViewSet,
     DoctorViewSet,
+    OrderViewSet,
     ClinicViewSet,
     ServiceExamViewSet
 )
-from kiosk.views.order_view import OrderViewSet
 
 # Namespace cho app (dùng trong reverse URL: 'kiosk:user-list')
 app_name = 'kiosk'

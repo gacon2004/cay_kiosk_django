@@ -280,8 +280,6 @@ class CustomUser(AbstractUser):
     - username, password, email, first_name, last_name
     - is_active, is_staff, is_superuser
     - date_joined, last_login
-
-    Thêm các fields bổ sung cho hệ thống Healthcare Kiosk
     """
     phone = models.CharField(max_length=20,blank=True,null=True,verbose_name="Số điện thoại")
     address = models.TextField(blank=True, null=True, verbose_name="Địa chỉ", help_text="Địa chỉ chi tiết")
